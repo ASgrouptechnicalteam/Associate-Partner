@@ -17,16 +17,12 @@ export const getFeedbackPage = async (req: Request, res: Response) => {
     });
 
     if (!review) {
-      return res.status(404).send('Review request not found.');
+      return res.status(404).json({ error: 'Review request not found.' });
     }
 
-    if (review.isSubmitted) {
-      return res.render('public/feedback-thank-you', { review });
-    }
-
-    res.render('public/feedback', { review });
+    res.json({ success: true, review });
   } catch (error: any) {
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 

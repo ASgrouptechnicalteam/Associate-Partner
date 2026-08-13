@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,7 @@ export const createCarousel = async (req: AuthRequest, res: Response) => {
   try {
     let imagePath = String(req.body.image || '');
     if (req.file) {
-      imagePath = `/uploads/${req.file.filename}`;
+      imagePath = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     }
     const item = await prisma.dashboardCarousel.create({
       data: {
@@ -62,6 +63,8 @@ export const createCarousel = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, data: item });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 
@@ -82,7 +85,7 @@ export const updateCarousel = async (req: AuthRequest, res: Response) => {
       updatedBy: req.user!.name
     };
     if (req.file) {
-      dataToUpdate.image = `/uploads/${req.file.filename}`;
+      dataToUpdate.image = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     } else if (req.body.image !== undefined) {
       dataToUpdate.image = so(req.body.image);
     }
@@ -100,6 +103,8 @@ export const updateCarousel = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, data: item });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 
@@ -319,7 +324,7 @@ export const createPopup = async (req: AuthRequest, res: Response) => {
   try {
     let imagePath = so(req.body.image);
     if (req.file) {
-      imagePath = `/uploads/${req.file.filename}`;
+      imagePath = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     }
     
     const isPublished = req.body.isPublished === 'true' || req.body.isPublished === true;
@@ -344,6 +349,8 @@ export const createPopup = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, data: item });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 
@@ -361,7 +368,7 @@ export const updatePopup = async (req: AuthRequest, res: Response) => {
       dataToUpdate.isPublished = req.body.isPublished === 'true' || req.body.isPublished === true;
     }
     if (req.file) {
-      dataToUpdate.image = `/uploads/${req.file.filename}`;
+      dataToUpdate.image = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     } else if (req.body.image !== undefined) {
       dataToUpdate.image = so(req.body.image);
     }
@@ -380,6 +387,8 @@ export const updatePopup = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, data: item });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 

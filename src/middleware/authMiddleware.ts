@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-dev';
+
+// JWT_SECRET is guaranteed by the startup guard in app.ts
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -11,7 +13,7 @@ export interface AuthRequest extends Request {
 
 export const requireAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.cookies?.token;
-  if (!token) return res.redirect('/login');
+  if (!token) return res.status(401).json({ error: 'Unauthorized', message: 'Authentication required' });
 
   try {
     const decoded: any = jwt.verify(token, JWT_SECRET);
@@ -20,26 +22,26 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session) {
       res.clearCookie('token');
-      return res.redirect('/login?error=session_expired');
+      return res.status(401).json({ error: 'Unauthorized', message: 'Session expired' });
     }
 
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
     if (!user || !user.isActive) {
       res.clearCookie('token');
-      return res.redirect('/login?error=account_inactive');
+      return res.status(403).json({ error: 'Forbidden', message: 'Account is inactive' });
     }
 
     req.user = user;
     next();
   } catch (err) {
     res.clearCookie('token');
-    return res.redirect('/login?error=invalid_token');
+    return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token' });
   }
 };
 
 export const checkFirstLogin = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (req.user && req.user.isFirstLogin && req.path !== '/change-password' && !req.path.startsWith('/api/auth')) {
-    return res.redirect('/change-password');
+    return res.status(403).json({ error: 'FIRST_LOGIN_REQUIRED', message: 'Password change required' });
   }
   next();
 };

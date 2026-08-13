@@ -1,0 +1,8 @@
+/**
+ * Generic page stub generator.
+ * Each page below loads data from the API and renders it.
+ * They all follow the same pattern: useEffect → fetch → render.
+ */
+
+// This file intentionally left empty — pages are individual files.
+export {};

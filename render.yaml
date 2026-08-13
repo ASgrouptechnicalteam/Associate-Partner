@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: associate-partner-portal-api
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGIN
+        value: https://associatepartner.sonthilluconstructions.com
+      - key: APP_DOMAIN
+        value: associatepartner.sonthilluconstructions.com
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false

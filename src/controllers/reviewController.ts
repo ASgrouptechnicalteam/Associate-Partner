@@ -32,8 +32,8 @@ export const requestReview = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    const protocol = req.protocol || 'http';
-    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.protocol || 'https';
+    const host = req.get('host') || process.env.APP_DOMAIN || 'localhost:3000';
     const reviewLink = `${protocol}://${host}/feedback/${review.id}`;
 
     res.json({ success: true, review, link: reviewLink });

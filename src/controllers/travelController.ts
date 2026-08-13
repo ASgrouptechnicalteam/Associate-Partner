@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { createNotification } from './notificationController';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +12,7 @@ export const createTravelRequest = async (req: AuthRequest, res: Response) => {
     
     let supportingBill = null;
     if (req.file) {
-      supportingBill = '/uploads/' + req.file.filename;
+      supportingBill = await StorageService.uploadFile(req.file.path, req.file.filename, true);
     }
 
     const travel = await prisma.travelAllowance.create({
@@ -42,6 +43,8 @@ export const createTravelRequest = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, travel });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 

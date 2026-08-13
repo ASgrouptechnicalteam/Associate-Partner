@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { createNotification } from './notificationController';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -25,7 +26,10 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
     if (req.files) {
       const filesArray = req.files as { [fieldname: string]: Express.Multer.File[] };
       if (filesArray['documents']) {
-        documents = filesArray['documents'].map(f => '/uploads/' + f.filename);
+        for (const file of filesArray['documents']) {
+          const docPath = await StorageService.uploadFile(file.path, file.filename, true);
+          documents.push(docPath);
+        }
       }
     }
 
@@ -67,6 +71,8 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, booking });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.files as any);
   }
 };
 

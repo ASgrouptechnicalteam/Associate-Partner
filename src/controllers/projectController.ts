@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -10,10 +11,24 @@ export const createProject = async (req: AuthRequest, res: Response) => {
     
     // multer stores files in req.files
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const brochureUrl = files['brochure'] ? '/uploads/' + files['brochure'][0].filename : undefined;
-    const layoutUrl = files['layout'] ? '/uploads/' + files['layout'][0].filename : undefined;
     
-    const galleryPaths = files['gallery'] ? files['gallery'].map(f => '/uploads/' + f.filename) : [];
+    let brochureUrl = undefined;
+    let layoutUrl = undefined;
+    const galleryPaths: string[] = [];
+
+    // All project files are public assets
+    if (files && files['brochure']) {
+      brochureUrl = await StorageService.uploadFile(files['brochure'][0].path, files['brochure'][0].filename, false);
+    }
+    if (files && files['layout']) {
+      layoutUrl = await StorageService.uploadFile(files['layout'][0].path, files['layout'][0].filename, false);
+    }
+    if (files && files['gallery']) {
+      for (const file of files['gallery']) {
+        const path = await StorageService.uploadFile(file.path, file.filename, false);
+        galleryPaths.push(path);
+      }
+    }
 
     const project = await prisma.project.create({
       data: {
@@ -50,6 +65,8 @@ export const createProject = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, project });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.files as any);
   }
 };
 

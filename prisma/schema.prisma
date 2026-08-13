@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -80,8 +80,8 @@ model ApprovalRequest {
   id              String    @id @default(uuid())
   type            String
   status          String
-  payload         String?
-  rejectionReason String?
+  payload         String?   @db.Text
+  rejectionReason String?   @db.Text
   requestedById   String?
   targetUserId    String?
   approverId      String?
@@ -97,7 +97,7 @@ model AuditLog {
   id        String   @id @default(uuid())
   action    String
   userId    String
-  details   String?
+  details   String?  @db.Text
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 }
@@ -106,12 +106,12 @@ model Project {
   id                String              @id @default(uuid())
   name              String
   location          String?
-  description       String?
+  description       String?             @db.Text
   brochureUrl       String?
   layoutUrl         String?
-  gallery           String?
-  customerOffers    String?
-  associateOffers   String?
+  gallery           String?             @db.Text
+  customerOffers    String?             @db.Text
+  associateOffers   String?             @db.Text
   status            String              @default("DRAFT")
   projectCode       String?             @unique
   projectType       String?
@@ -121,18 +121,18 @@ model Project {
   launchDate        DateTime?
   completionDate    DateTime?
   possessionDate    DateTime?
-  locationData      String?
-  legalData         String?
-  landData          String?
-  pricingData       String?
-  paymentPlanData   String?
-  amenities         String?
-  infrastructure    String?
-  constructionData  String?
-  marketingData     String?
-  mediaData         String?
-  salesData         String?
-  faqs              String?
+  locationData      String?             @db.Text
+  legalData         String?             @db.Text
+  landData          String?             @db.Text
+  pricingData       String?             @db.Text
+  paymentPlanData   String?             @db.Text
+  amenities         String?             @db.Text
+  infrastructure    String?             @db.Text
+  constructionData  String?             @db.Text
+  marketingData     String?             @db.Text
+  mediaData         String?             @db.Text
+  salesData         String?             @db.Text
+  faqs              String?             @db.Text
   wizardStep        Int                 @default(1)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -185,7 +185,7 @@ model Promotion {
   id           String    @id @default(uuid())
   type         String
   title        String
-  description  String?
+  description  String?   @db.Text
   imageUrl     String?
   ctaText      String?
   ctaLink      String?
@@ -202,7 +202,7 @@ model Promotion {
   bonusAmount        String?
   commissionBonus    String?
   otherBenefit       String?
-  termsAndConditions String?
+  termsAndConditions String?   @db.Text
   
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -224,8 +224,8 @@ model Booking {
   bookingAmount     String
   expectedAmount    String
   paymentMode       String
-  notes             String?
-  documents         String?
+  notes             String?            @db.Text
+  documents         String?            @db.Text
   associateId       String
   status            String             @default("PENDING_AM")
   createdAt         DateTime           @default(now())
@@ -247,7 +247,7 @@ model CommissionLedger {
   percentageValue  String?
   paymentStatus    String    @default("PENDING")
   paymentDate      DateTime?
-  referenceRemarks String?
+  referenceRemarks String?   @db.Text
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   project          Project?  @relation(fields: [projectId], references: [id])
@@ -269,7 +269,7 @@ model TravelAllowance {
   amountRequested String
   amountApproved  String?
   supportingBill  String?
-  notes           String?
+  notes           String?   @db.Text
   status          String    @default("PENDING")
   paymentDate     DateTime?
   createdAt       DateTime  @default(now())
@@ -288,14 +288,14 @@ model SiteVisit {
   time             String
   numVisitors      Int
   purpose          String
-  notes            String?
+  notes            String?   @db.Text
   status           String    @default("SCHEDULED")
   outcome          String?
-  customerInterest String?
-  propertyViewed   String?
+  customerInterest String?   @db.Text
+  propertyViewed   String?   @db.Text
   followUpRequired Boolean   @default(false)
   followUpDate     DateTime?
-  remarks          String?
+  remarks          String?   @db.Text
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   project          Project   @relation(fields: [projectId], references: [id])
@@ -311,11 +311,11 @@ model CustomerReview {
   customerPhone            String
   customerEmail            String?
   interactionDate          DateTime
-  interactionSummary       String
+  interactionSummary       String   @db.Text
   overallRating            Int?
   communicationRating      Int?
   propertyExperienceRating Int?
-  writtenReview            String?
+  writtenReview            String?  @db.Text
   isSubmitted              Boolean  @default(false)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -328,7 +328,7 @@ model Notification {
   id        String   @id @default(uuid())
   userId    String
   category  String
-  message   String
+  message   String   @db.Text
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -340,7 +340,7 @@ model DashboardCarousel {
   id           String   @id @default(uuid())
   title        String?
   subtitle     String?
-  description  String?
+  description  String?   @db.Text
   image        String
   type         String   // FEATURED, NEW, PROMOTION, OFFER
   projectId    String?
@@ -361,13 +361,13 @@ model DashboardCarousel {
 model DashboardOffer {
   id              String   @id @default(uuid())
   title           String
-  description     String?
+  description     String?  @db.Text
   image           String?
   offerType       String   // PROJECT, BOOKING, COMMISSION, FESTIVAL
   discount        String?
   commissionBonus String?
   projectId       String?
-  terms           String?
+  terms           String?  @db.Text
   startDate       DateTime?
   endDate         DateTime?
   priority        Int      @default(0)
@@ -380,7 +380,7 @@ model DashboardOffer {
 model Announcement {
   id               String   @id @default(uuid())
   title            String
-  message          String
+  message          String   @db.Text
   type             String   // ANNOUNCEMENT, OFFER, NEW_PROJECT, WARNING, IMPORTANT
   image            String?
   ctaText          String?
@@ -413,7 +413,7 @@ model DashboardPopup {
   contentType  String   // "image" or "text"
   image        String?
   title        String?
-  description  String?
+  description  String?   @db.Text
   ctaText      String?
   ctaUrl       String?
   isPublished  Boolean  @default(false)

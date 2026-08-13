@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc",
+    "start:prod": "NODE_ENV=production node dist/app.js",
+    "build": "prisma generate && tsc",
     "dev": "nodemon --exec tsx src/app.ts",
     "lint": "eslint ."
   },
@@ -13,17 +14,23 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "basic-ftp": "^6.2.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "ssh2-sftp-client": "^12.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -32,8 +39,10 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.2.0",
+    "@types/ssh2-sftp-client": "^9.0.6",
     "eslint": "^10.8.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",

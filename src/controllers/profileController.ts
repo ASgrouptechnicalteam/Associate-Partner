@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -24,29 +25,6 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, user });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
-  }
-};
-
-export const getEditProfilePage = async (req: AuthRequest, res: Response) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      include: { profile: true }
-    });
-
-    if (!user) {
-      return res.redirect('/login?error=user_not_found');
-    }
-
-    res.render('pages/profile-edit', {
-      title: 'Edit Profile',
-      activePath: '/profile',
-      user: user,
-      profile: user.profile || {}
-    });
-  } catch (error: any) {
-    console.error('Error loading edit profile page:', error);
-    res.status(500).send('An error occurred while loading the profile.');
   }
 };
 
@@ -78,9 +56,17 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
     }
 
     if (files) {
-      if (files['profilePhoto']) profileData.profilePhoto = '/uploads/' + files['profilePhoto'][0].filename;
-      if (files['aadhaarFile']) profileData.aadhaarFile = '/uploads/' + files['aadhaarFile'][0].filename;
-      if (files['panFile']) profileData.panFile = '/uploads/' + files['panFile'][0].filename;
+      // Profile Photo is public
+      if (files['profilePhoto']) {
+        profileData.profilePhoto = await StorageService.uploadFile(files['profilePhoto'][0].path, files['profilePhoto'][0].filename, false);
+      }
+      // Aadhaar and PAN are private
+      if (files['aadhaarFile']) {
+        profileData.aadhaarFile = await StorageService.uploadFile(files['aadhaarFile'][0].path, files['aadhaarFile'][0].filename, true);
+      }
+      if (files['panFile']) {
+        profileData.panFile = await StorageService.uploadFile(files['panFile'][0].path, files['panFile'][0].filename, true);
+      }
     }
 
     await prisma.profile.upsert({
@@ -96,5 +82,7 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.files as any);
   }
 };

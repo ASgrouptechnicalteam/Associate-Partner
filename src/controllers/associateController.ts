@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -25,6 +26,7 @@ const generateAssociateCode = async () => {
 export const createAssociate = async (req: AuthRequest, res: Response) => {
   try {
     const data = req.body;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     
     // Only AM or MD can directly create
     if (req.user?.role !== 'AM' && req.user?.role !== 'MD') {
@@ -33,6 +35,16 @@ export const createAssociate = async (req: AuthRequest, res: Response) => {
 
     const associateCode = await generateAssociateCode();
     const tempPassword = await bcrypt.hash('Associate@123!', 10);
+
+    let profilePhotoUrl = null;
+    let aadhaarFileUrl = null;
+    let panFileUrl = null;
+
+    if (files) {
+      if (files['profilePhoto']) profilePhotoUrl = await StorageService.uploadFile(files['profilePhoto'][0].path, files['profilePhoto'][0].filename, false);
+      if (files['aadhaarFile']) aadhaarFileUrl = await StorageService.uploadFile(files['aadhaarFile'][0].path, files['aadhaarFile'][0].filename, true);
+      if (files['panFile']) panFileUrl = await StorageService.uploadFile(files['panFile'][0].path, files['panFile'][0].filename, true);
+    }
 
     const newUser = await prisma.user.create({
       data: {
@@ -66,7 +78,10 @@ export const createAssociate = async (req: AuthRequest, res: Response) => {
             workAddress: data.workAddress,
             experience: data.experience,
             referredBy: req.user.id,
-            commissionConfig: data.commissionConfig ? JSON.stringify(data.commissionConfig) : null
+            commissionConfig: data.commissionConfig ? JSON.stringify(data.commissionConfig) : null,
+            profilePhoto: profilePhotoUrl,
+            aadhaarFile: aadhaarFileUrl,
+            panFile: panFileUrl
           }
         }
       }
@@ -93,6 +108,8 @@ export const createAssociate = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, associateCode });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.files as any);
   }
 };
 

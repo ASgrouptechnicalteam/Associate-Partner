@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { StorageService } from '../services/storageService';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ export const createPromotion = async (req: AuthRequest, res: Response) => {
     
     let imageUrl = undefined;
     if (req.file) {
-      imageUrl = '/uploads/' + req.file.filename;
+      imageUrl = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     }
 
     const promotion = await prisma.promotion.create({
@@ -52,6 +53,8 @@ export const createPromotion = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, promotion });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 
@@ -92,7 +95,7 @@ export const updatePromotion = async (req: AuthRequest, res: Response) => {
     if (isActive !== undefined) data.isActive = isActive === 'true' || isActive === true;
     
     if (req.file) {
-      data.imageUrl = '/uploads/' + req.file.filename;
+      data.imageUrl = await StorageService.uploadFile(req.file.path, req.file.filename, false);
     }
 
     const promotion = await prisma.promotion.update({
@@ -111,6 +114,8 @@ export const updatePromotion = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, promotion });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  } finally {
+    StorageService.cleanupLocalFiles(req.file as any);
   }
 };
 

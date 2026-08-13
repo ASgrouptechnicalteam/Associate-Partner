@@ -5,7 +5,9 @@ import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-dev';
+
+// JWT_SECRET is guaranteed by the startup guard in app.ts
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const login = async (req: Request, res: Response) => {
   const { userId, password } = req.body;
@@ -42,7 +44,13 @@ export const login = async (req: Request, res: Response) => {
     }
   });
 
-  res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.cookie('token', token, {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: isProduction,       // HTTPS-only in production
+    sameSite: 'strict',
+  });
   res.json({ success: true, isFirstLogin: user.isFirstLogin });
 };
 
@@ -62,7 +70,7 @@ export const logout = async (req: AuthRequest, res: Response) => {
     }
   }
   res.clearCookie('token');
-  res.redirect('/login');
+  res.json({ success: true, message: 'Logged out successfully' });
 };
 
 export const changePassword = async (req: AuthRequest, res: Response) => {
@@ -88,4 +96,12 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
   });
 
   res.json({ success: true });
+};
+
+export const getMe = async (req: AuthRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Not authenticated.' });
+  // Don't return passwordHash
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { passwordHash: _, ...safeUser } = req.user;
+  res.json({ success: true, user: safeUser });
 };
