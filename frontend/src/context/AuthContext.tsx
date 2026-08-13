@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { User } from '../api/client';
 
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextValue>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const refresh = async () => {
     try {
@@ -36,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await api.auth.logout();
     } finally {
       setUser(null);
-      window.location.href = '/login';
+      navigate('/login');
     }
   };
 

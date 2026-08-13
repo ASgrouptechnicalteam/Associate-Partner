@@ -17,16 +17,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...options,
   });
 
-  // Redirect to login if unauthorised
+  // Throw errors instead of hard reloading the SPA
   if (res.status === 401) {
-    window.location.href = '/login';
     throw new Error('Unauthorised');
   }
 
   const data = await res.json().catch(() => ({}));
   
   if (res.status === 403 && (data as any).error === 'FIRST_LOGIN_REQUIRED') {
-    window.location.href = '/change-password';
     throw new Error('FIRST_LOGIN_REQUIRED');
   }
 

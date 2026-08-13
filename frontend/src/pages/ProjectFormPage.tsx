@@ -93,8 +93,8 @@ export default function ProjectFormPage() {
             <p className="text-muted">Step {currentStep} of {TOTAL_STEPS} — {STEP_NAMES[currentStep]}</p>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={saveDraft} disabled={saving}>{saving ? 'Saving...' : 'Save Draft'}</button>
-            <button className="btn btn-secondary" onClick={() => navigate('/projects')}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={saveDraft} disabled={saving}>{saving ? 'Saving...' : 'Save Draft'}</button>
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/projects')}>Cancel</button>
           </div>
         </div>
         <div style={{ background: 'var(--surface-muted)', borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
@@ -124,11 +124,11 @@ export default function ProjectFormPage() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <button className="btn btn-secondary" onClick={handlePrev} style={{ display: currentStep > 1 ? 'block' : 'none' }}>← Back</button>
+        <button type="button" className="btn btn-secondary" onClick={handlePrev} style={{ display: currentStep > 1 ? 'block' : 'none' }}>← Back</button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" onClick={saveDraft}>Save Draft</button>
-          <button className="btn btn-primary" onClick={handleNext} style={{ display: currentStep < TOTAL_STEPS ? 'block' : 'none' }}>Next →</button>
-          <button className="btn btn-gold" onClick={submitForApproval} style={{ display: currentStep === TOTAL_STEPS ? 'block' : 'none' }}>Submit for Approval</button>
+          <button type="button" className="btn btn-secondary" onClick={saveDraft}>Save Draft</button>
+          <button type="button" className="btn btn-primary" onClick={handleNext} style={{ display: currentStep < TOTAL_STEPS ? 'block' : 'none' }}>Next →</button>
+          <button type="button" className="btn btn-gold" onClick={submitForApproval} style={{ display: currentStep === TOTAL_STEPS ? 'block' : 'none' }}>Submit for Approval</button>
         </div>
       </div>
     </AppLayout>
