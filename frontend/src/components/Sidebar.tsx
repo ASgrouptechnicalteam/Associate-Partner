@@ -59,7 +59,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div style={{ padding: 'var(--space-6) var(--space-4) var(--space-8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <img
-          src="/assets/branding/sonthillu-logo.svg"
+          src="/assets/branding/sonthillu_constructions_logo_exact.svg"
           alt="Sonthillu Constructions"
           style={{ maxWidth: '130px', height: 'auto', objectFit: 'contain', flexShrink: 0 }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}

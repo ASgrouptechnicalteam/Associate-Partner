@@ -78,7 +78,7 @@ export default function MobileNav() {
       >
         {/* Drawer Header */}
         <div style={{ padding: 'var(--space-4)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <img src="/assets/branding/sonthillu-logo.svg" alt="Sonthillu" style={{ maxWidth: 140, height: 'auto' }} />
+          <img src="/assets/branding/sonthillu_constructions_logo_exact.svg" alt="Sonthillu" style={{ maxWidth: 140, height: 'auto' }} />
           <button style={{ background: 'transparent', border: 'none', padding: 4, cursor: 'pointer' }} onClick={() => setDrawerOpen(false)}>
             <X size={20} />
           </button>

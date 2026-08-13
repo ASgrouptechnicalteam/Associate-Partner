@@ -46,7 +46,7 @@ export default function Header({ title }: HeaderProps) {
       {/* Left: mobile logo + title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <img
-          src="/assets/branding/sonthillu-logo.svg"
+          src="/assets/branding/sonthillu_constructions_logo_exact.svg"
           alt="Sonthillu Constructions"
           className="mobile-only"
           style={{ maxWidth: '130px', height: '32px', objectFit: 'contain', flexShrink: 0 }}

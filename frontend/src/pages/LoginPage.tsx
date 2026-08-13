@@ -87,7 +87,7 @@ export default function LoginPage() {
             <div className="hero-content">
               <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'center' }}>
                 <div className="logo-panel">
-                  <img src="/assets/branding/sonthillu-logo.svg" alt="Sonthillu Constructions" />
+                  <img src="/assets/branding/sonthillu_constructions_logo_exact.svg" alt="Sonthillu Constructions" />
                 </div>
               </div>
               <h1 className="hero-heading">Grow Together.<br />Build Together.</h1>
@@ -101,7 +101,7 @@ export default function LoginPage() {
           <div className="login-content">
             <div className="mobile-logo">
               <div className="logo-panel">
-                <img src="/assets/branding/sonthillu-logo.svg" alt="Sonthillu Constructions" style={{ width: 90 }} />
+                <img src="/assets/branding/sonthillu_constructions_logo_exact.svg" alt="Sonthillu Constructions" style={{ width: 90 }} />
               </div>
             </div>
 
