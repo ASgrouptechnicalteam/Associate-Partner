@@ -44,12 +44,11 @@ export const login = async (req: Request, res: Response) => {
     }
   });
 
-  const isProduction = process.env.NODE_ENV === 'production';
   res.cookie('token', token, {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    secure: isProduction,       // HTTPS-only in production
-    sameSite: 'strict',
+    secure: true,               // Required for SameSite=None
+    sameSite: 'none',
   });
   res.json({ success: true, isFirstLogin: user.isFirstLogin });
 };
@@ -69,7 +68,10 @@ export const logout = async (req: AuthRequest, res: Response) => {
       await prisma.session.delete({ where: { token } });
     }
   }
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    sameSite: 'none',
+    secure: true,
+  });
   res.json({ success: true, message: 'Logged out successfully' });
 };
 
