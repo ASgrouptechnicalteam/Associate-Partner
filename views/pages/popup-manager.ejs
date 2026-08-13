@@ -1,0 +1,199 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Popup Management</h1>
+      <p class="text-muted">Manage the organization-wide popup.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showForm()">+ Create Popup</button>
+  </div>
+
+  <div id="new-promo-form" class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: none;">
+    <h3 style="margin-bottom: var(--space-4);" id="formTitle">Create Popup</h3>
+    <form id="promoForm" enctype="multipart/form-data">
+      <input type="hidden" id="popupId" name="id" />
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group">
+          <label class="input-label">Content Type</label>
+          <select name="contentType" id="contentTypeInput" class="input-control" onchange="toggleFields()" required>
+            <option value="text">Text Only</option>
+            <option value="image">Image with Text</option>
+          </select>
+        </div>
+        <div class="input-group" id="imageFieldGroup" style="display: none;">
+          <%- include('../partials/file-upload', {
+            name: 'image',
+            label: 'Upload Popup Image',
+            accept: 'image/*',
+            required: false
+          }) %>
+          <div id="currentImagePreview" style="margin-top: 8px; display: none;">
+            <img src="" style="max-height: 100px; border-radius: 8px;" id="previewImg" />
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Title</label>
+          <input type="text" name="title" id="titleInput" class="input-control" required />
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">Description / Message</label>
+          <textarea name="description" id="descInput" class="input-control" rows="3" required></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">CTA Text (Button)</label>
+          <input type="text" name="ctaText" id="ctaTextInput" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">CTA Link URL</label>
+          <input type="text" name="ctaUrl" id="ctaUrlInput" class="input-control" />
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">
+            <input type="checkbox" name="isPublished" id="isPublishedInput" value="true" /> Publish Immediately (will unpublish existing)
+          </label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4);">
+        <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Popup</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="padding: var(--space-4);">
+    <div id="promos-container"><p class="text-muted">Loading popups...</p></div>
+  </div>
+</div>
+
+<script>
+  function toggleFields() {
+    const type = document.getElementById('contentTypeInput').value;
+    if (type === 'image') {
+      document.getElementById('imageFieldGroup').style.display = 'block';
+    } else {
+      document.getElementById('imageFieldGroup').style.display = 'none';
+    }
+  }
+
+  function showForm(item = null) {
+    document.getElementById('new-promo-form').style.display = 'block';
+    const form = document.getElementById('promoForm');
+    form.reset();
+    document.getElementById('currentImagePreview').style.display = 'none';
+
+    if (item) {
+      document.getElementById('formTitle').innerText = 'Edit Popup';
+      document.getElementById('popupId').value = item.id;
+      document.getElementById('contentTypeInput').value = item.contentType || 'text';
+      document.getElementById('titleInput').value = item.title || '';
+      document.getElementById('descInput').value = item.description || '';
+      document.getElementById('ctaTextInput').value = item.ctaText || '';
+      document.getElementById('ctaUrlInput').value = item.ctaUrl || '';
+      document.getElementById('isPublishedInput').checked = item.isPublished;
+      if (item.image) {
+        document.getElementById('currentImagePreview').style.display = 'block';
+        document.getElementById('previewImg').src = item.image;
+      }
+    } else {
+      document.getElementById('formTitle').innerText = 'Create Popup';
+      document.getElementById('popupId').value = '';
+      document.getElementById('isPublishedInput').checked = false;
+      document.getElementById('contentTypeInput').value = 'text';
+    }
+    toggleFields();
+    window.scrollTo(0, 0);
+  }
+
+  function hideForm() {
+    document.getElementById('new-promo-form').style.display = 'none';
+  }
+
+  document.getElementById('promoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    
+    try {
+      const formData = new FormData(e.target);
+      if (!document.getElementById('isPublishedInput').checked) formData.append('isPublished', 'false');
+
+      const id = document.getElementById('popupId').value;
+      const url = id ? `/api/dashboard/popup/${id}` : '/api/dashboard/popup';
+      const method = id ? 'PUT' : 'POST';
+
+      const res = await fetch(url, { method, body: formData });
+      const data = await res.json();
+      if (data.success) {
+        hideForm();
+        fetchData();
+      } else alert(data.error);
+    } catch(err) {
+      alert('Error saving popup');
+    }
+    btn.disabled = false;
+  });
+
+  async function fetchData() {
+    try {
+      const res = await fetch('/api/dashboard/popup');
+      const data = await res.json();
+      if (data.success) {
+        renderData(data.data);
+      }
+    } catch(e) {}
+  }
+
+  function renderData(items) {
+    if (!items || items.length === 0) {
+      document.getElementById('promos-container').innerHTML = '<p class="text-muted">No popups found.</p>';
+      return;
+    }
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+    
+    items.forEach((p) => {
+      html += `
+        <div style="display: flex; gap: 16px; align-items: stretch; border: 1px solid var(--border-light); padding: 16px; border-radius: 8px; background: rgba(255,255,255,0.02);">
+          ${p.contentType === 'image' && p.image ? `
+          <div style="flex: 0 0 150px; background: #000; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
+            <img src="${p.image}" style="width: 100%; height: 100px; object-fit: cover;" />
+          </div>` : ''}
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <h4 style="margin: 0 0 4px 0; font-size: 16px;">${p.title || 'Untitled'} (${p.contentType})</h4>
+            <p style="margin: 0 0 8px 0; font-size: 13px; color: var(--text-muted);">${p.description || 'No description'}</p>
+            <div style="display: flex; gap: 16px; font-size: 13px;">
+              <span><strong style="color: ${p.isPublished ? 'var(--primary)' : 'var(--text-muted)'}">${p.isPublished ? 'Published (Active)' : 'Unpublished'}</strong></span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;">
+            <div style="display: flex; gap: 8px; margin-top: auto;">
+              <button onclick='editItem(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">Edit</button>
+              <button onclick="deleteItem('${p.id}')" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; color: var(--error);">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+    document.getElementById('promos-container').innerHTML = html;
+  }
+
+  function editItem(item) {
+    showForm(item);
+  }
+
+  async function deleteItem(id) {
+    if (!confirm('Delete this popup?')) return;
+    try {
+      const res = await fetch('/api/dashboard/popup/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchData();
+    } catch(e) {}
+  }
+
+  fetchData();
+</script>
+
+<%- include('../partials/footer') %>

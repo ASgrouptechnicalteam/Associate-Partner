@@ -1,0 +1,174 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="margin-bottom: var(--space-6);">
+    <h1 style="font-size: 24px; font-weight: 700;">New Booking</h1>
+    <p class="text-muted">Register a new unit booking for a customer.</p>
+  </div>
+
+  <form id="bookingForm" enctype="multipart/form-data" class="card" style="padding: var(--space-6);">
+    
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">1. Property Selection</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Select Project</label>
+        <select name="projectId" id="project-select" class="input-control" required onchange="loadUnits()">
+          <option value="">-- Loading Projects --</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Select Available Unit</label>
+        <select name="unitId" id="unit-select" class="input-control" required disabled>
+          <option value="">-- Select Project First --</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">2. Customer Details</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Customer Full Name</label>
+        <input type="text" name="customerName" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Primary Phone</label>
+        <input type="tel" name="customerPhone" class="input-control" required />
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Alternate Phone</label>
+        <input type="tel" name="customerAltPhone" class="input-control" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <input type="email" name="customerEmail" class="input-control" />
+      </div>
+      <div class="input-group" style="grid-column: span 2;">
+        <label class="input-label">Full Address</label>
+        <textarea name="customerAddress" class="input-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">3. Booking Financials</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Booking Date</label>
+        <input type="date" name="bookingDate" class="input-control" required id="bookingDateInput" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Payment Mode</label>
+        <select name="paymentMode" class="input-control" required>
+          <option value="CASH">Cash</option>
+          <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS/IMPS)</option>
+          <option value="CHEQUE">Cheque</option>
+          <option value="UPI">UPI</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Received Booking Amount (₹)</label>
+        <input type="number" name="bookingAmount" class="input-control" required min="0" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Total Expected Amount (₹)</label>
+        <input type="number" name="expectedAmount" class="input-control" required min="0" />
+      </div>
+      <div class="input-group" style="grid-column: span 2;">
+        <%- include('../partials/file-upload', {
+          name: 'documents',
+          label: 'Payment Receipt / Documents',
+          accept: '*/*',
+          multiple: true,
+          required: false
+        }) %>
+      </div>
+      <div class="input-group" style="grid-column: span 2;">
+        <label class="input-label">Additional Notes</label>
+        <textarea name="notes" class="input-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+      <a href="/bookings" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" id="submitBtn">Submit Booking</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Set today as default
+  document.getElementById('bookingDateInput').valueAsDate = new Date();
+  
+  let projectsCache = [];
+
+  async function init() {
+    try {
+      const res = await fetch('/api/projects');
+      const data = await res.json();
+      if (data.success) {
+        projectsCache = data.projects;
+        const pSelect = document.getElementById('project-select');
+        let html = '<option value="">-- Select a Project --</option>';
+        projectsCache.forEach(p => {
+          html += `<option value="${p.id}">${p.name}</option>`;
+        });
+        pSelect.innerHTML = html;
+      }
+    } catch(e) {}
+  }
+
+  function loadUnits() {
+    const projectId = document.getElementById('project-select').value;
+    const uSelect = document.getElementById('unit-select');
+    if (!projectId) {
+      uSelect.innerHTML = '<option value="">-- Select Project First --</option>';
+      uSelect.disabled = true;
+      return;
+    }
+
+    const project = projectsCache.find(p => p.id === projectId);
+    const availableUnits = project.units.filter(u => u.status === 'AVAILABLE');
+
+    if (availableUnits.length === 0) {
+      uSelect.innerHTML = '<option value="">-- No units available --</option>';
+      uSelect.disabled = true;
+      return;
+    }
+
+    let html = '<option value="">-- Select an Available Unit --</option>';
+    availableUnits.forEach(u => {
+      html += `<option value="${u.id}">${u.identifier} (${u.size || 'N/A'}) - ₹${u.price || 'N/A'}</option>`;
+    });
+    uSelect.innerHTML = html;
+    uSelect.disabled = false;
+  }
+
+  document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      const formData = new FormData(e.target);
+      const res = await fetch('/api/bookings', { method: 'POST', body: formData });
+      const data = await res.json();
+      
+      if (data.success) {
+        alert('Booking submitted successfully. Pending AM verification.');
+        window.location.href = '/bookings';
+      } else {
+        alert('Error: ' + data.error);
+        btn.textContent = 'Submit Booking';
+        btn.disabled = false;
+      }
+    } catch(err) {
+      alert('Network error');
+      btn.textContent = 'Submit Booking';
+      btn.disabled = false;
+    }
+  });
+
+  init();
+</script>
+
+<%- include('../partials/footer') %>

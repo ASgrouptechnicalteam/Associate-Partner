@@ -1,0 +1,150 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="margin-bottom: var(--space-6);">
+    <h1 style="font-size: 24px; font-weight: 700;">Approval Center</h1>
+    <p class="text-muted">Manage system approvals and audit history.</p>
+  </div>
+
+  <div style="margin-bottom: var(--space-4);">
+    <button class="btn btn-primary" onclick="switchTab('pending')" id="tab-pending">Pending Requests</button>
+    <button class="btn btn-secondary" onclick="switchTab('history')" id="tab-history">Approval History</button>
+  </div>
+
+  <div class="card" style="padding: var(--space-4);" id="pending-view">
+    <div id="pending-container"><p class="text-muted">Loading pending requests...</p></div>
+  </div>
+
+  <div class="card" style="padding: var(--space-4); display: none;" id="history-view">
+    <div id="history-container"><p class="text-muted">Loading history...</p></div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab) {
+    document.getElementById('pending-view').style.display = tab === 'pending' ? 'block' : 'none';
+    document.getElementById('history-view').style.display = tab === 'history' ? 'block' : 'none';
+    document.getElementById('tab-pending').className = tab === 'pending' ? 'btn btn-primary' : 'btn btn-secondary';
+    document.getElementById('tab-history').className = tab === 'history' ? 'btn btn-primary' : 'btn btn-secondary';
+    
+    if (tab === 'pending') fetchPending();
+    else fetchHistory();
+  }
+
+  async function fetchPending() {
+    try {
+      const res = await fetch('/api/approvals');
+      const data = await res.json();
+      if (data.success) {
+        renderTable('pending-container', data.requests, true);
+      }
+    } catch (e) {
+      document.getElementById('pending-container').innerHTML = '<p class="text-error">Failed to load requests.</p>';
+    }
+  }
+
+  async function fetchHistory() {
+    try {
+      const res = await fetch('/api/approvals/history');
+      const data = await res.json();
+      if (data.success) {
+        renderTable('history-container', data.history, false);
+      }
+    } catch (e) {
+      document.getElementById('history-container').innerHTML = '<p class="text-error">Failed to load history.</p>';
+    }
+  }
+
+  function renderTable(containerId, requests, isPending) {
+    if (!requests || requests.length === 0) {
+      document.getElementById(containerId).innerHTML = '<p class="text-muted">No records found.</p>';
+      return;
+    }
+
+    let html = '<div class="table-wrapper"><table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">';
+    html += `
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border-light); text-align: left;">
+          <th style="padding: 12px;">Date</th>
+          <th style="padding: 12px;">Type</th>
+          <th style="padding: 12px;">Requested By</th>
+          <th style="padding: 12px;">Details</th>
+          ${isPending ? '<th style="padding: 12px; text-align: right;">Action</th>' : '<th style="padding: 12px;">Status / Approver</th>'}
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    requests.forEach(req => {
+      const reqByName = req.requestedBy ? req.requestedBy.name : 'System';
+      const date = new Date(req.resolvedAt || req.createdAt).toLocaleString();
+      let details = req.targetUser ? `Target: ${req.targetUser.name}` : 'N/A';
+      if (req.payload) details += ` (Payload: ${req.payload.substring(0, 30)}...)`;
+
+      let actionHtml = '';
+      if (isPending) {
+        actionHtml = `
+          <td style="padding: 12px; text-align: right;">
+            <button onclick="approveRequest('${req.id}')" class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;">Approve</button>
+            <button onclick="rejectRequest('${req.id}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px; color: var(--error);">Reject</button>
+          </td>
+        `;
+      } else {
+        const color = req.status === 'APPROVED' ? 'var(--success)' : 'var(--error)';
+        const approverName = req.approver ? req.approver.name : 'Unknown';
+        const reason = req.rejectionReason ? `<br><span style="font-size: 12px; color: var(--text-muted);">Reason: ${req.rejectionReason}</span>` : '';
+        actionHtml = `
+          <td style="padding: 12px;">
+            <span style="color: ${color}; font-weight: 600;">${req.status}</span> by ${approverName}
+            ${reason}
+          </td>
+        `;
+      }
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-light);">
+          <td style="padding: 12px;" class="text-muted">${date}</td>
+          <td style="padding: 12px; font-weight: 600;">${req.type.replace(/_/g, ' ')}</td>
+          <td style="padding: 12px;">${reqByName}</td>
+          <td style="padding: 12px;" class="text-muted">${details}</td>
+          ${actionHtml}
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById(containerId).innerHTML = html;
+  }
+
+  async function approveRequest(id) {
+    if (!confirm('Are you sure you want to approve this request?')) return;
+    try {
+      const res = await fetch(`/api/approvals/${id}/approve`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        fetchPending();
+      } else alert(data.error);
+    } catch(e) {}
+  }
+
+  async function rejectRequest(id) {
+    const reason = prompt('Please enter rejection reason:');
+    if (reason === null) return;
+    try {
+      const res = await fetch(`/api/approvals/${id}/reject`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchPending();
+      } else alert(data.error);
+    } catch(e) {}
+  }
+
+  // Load default
+  fetchPending();
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,458 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">My Team Network</h1>
+      <p class="text-muted">Manage your downline hierarchy and track performance.</p>
+    </div>
+    <% if (user && (user.role === 'MD' || user.role === 'AM')) { %>
+      <a href="/associates/new" class="btn btn-primary">Add Associate</a>
+    <% } %>
+  </div>
+
+  <!-- Stats row -->
+  <div class="responsive-grid-4">
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Direct Members</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center;"><i data-lucide="users"></i></div>
+      </div>
+      <div>
+        <div id="stat-direct" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Total Downline</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(59, 130, 246, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center;"><i data-lucide="network"></i></div>
+      </div>
+      <div>
+        <div id="stat-total" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Team Bookings</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center;"><i data-lucide="check-square"></i></div>
+      </div>
+      <div>
+        <div id="stat-bookings" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Team Commission</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--warning); display: flex; align-items: center; justify-content: center;"><i data-lucide="coins"></i></div>
+      </div>
+      <div>
+        <div id="stat-commission" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); background: var(--surface);">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-4);">
+      <div style="display: flex; gap: 8px; background: var(--surface-muted); padding: 4px; border-radius: var(--radius-md);">
+        <button onclick="setView('list')" id="btn-list" class="btn" style="background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm);"><i data-lucide="list" style="width: 16px;"></i> List</button>
+        <button onclick="setView('tree')" id="btn-tree" class="btn" style="background: transparent; color: var(--text-muted);"><i data-lucide="git-merge" style="width: 16px;"></i> Tree</button>
+      </div>
+      <div style="flex: 1; max-width: 300px; position: relative;">
+        <i data-lucide="search" style="position: absolute; left: 12px; top: 10px; width: 16px; color: var(--text-muted);"></i>
+        <input type="text" id="searchInput" class="input-control" placeholder="Search associate..." onkeyup="handleSearch()" style="padding-left: 36px; width: 100%;" />
+      </div>
+    </div>
+    <!-- Filters -->
+    <div style="display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Status:</label>
+        <select id="statusFilter" class="input-control" style="width: 150px; padding: 6px 12px; font-size: 13px;" onchange="handleSearch()">
+          <option value="ALL">All</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Manager:</label>
+        <select id="managerFilter" class="input-control" style="width: 200px; padding: 6px 12px; font-size: 13px;" onchange="handleSearch()">
+          <option value="ALL">All Managers</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div id="view-list">
+    <!-- Desktop Table -->
+    <div class="card desktop-only" style="padding: 0; display: none; overflow: hidden; margin-bottom: 24px;" id="desktop-list-container">
+      <div class="table-wrapper">
+        <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <thead style="background: var(--surface-muted);">
+            <tr style="text-align: left;">
+              <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Associate</th>
+              <th style="padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Contact / Location</th>
+              <th style="padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Manager</th>
+              <th style="padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Status</th>
+              <th style="padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; text-align: right;">Sales & Action</th>
+            </tr>
+          </thead>
+          <tbody id="desktop-team-tbody">
+            <tr><td colspan="5" style="padding: 40px; text-align: center;"><div class="skeleton" style="height: 40px;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Mobile Cards -->
+    <div class="mobile-only" id="mobile-list-container" style="display: none; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+    </div>
+  </div>
+
+  <!-- Tree View -->
+  <div id="view-tree" class="card" style="padding: var(--space-6); display: none; overflow-x: auto; background: var(--surface); margin-bottom: 24px;">
+    <div id="tree-container" style="font-family: inherit; font-size: 14px; line-height: 2;">
+      <div class="skeleton" style="height: 40px; width: 200px; border-radius: 8px; margin-bottom: 16px;"></div>
+    </div>
+  </div>
+
+  <!-- Associate Details Modal -->
+  <div id="associate-modal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative;">
+      <button onclick="closeModal()" style="position: absolute; right: 16px; top: 16px; background: transparent; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x"></i></button>
+      
+      <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-light); padding-bottom: 16px;">
+        <div id="modal-photo" style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; overflow: hidden;"></div>
+        <div>
+          <h2 id="modal-name" style="font-size: 20px; font-weight: 700;">Name</h2>
+          <p id="modal-id" style="color: var(--text-muted); font-family: monospace;">AP000</p>
+        </div>
+        <div id="modal-status" style="margin-left: auto;"></div>
+      </div>
+      
+      <div class="responsive-grid-2" style="gap: 24px;">
+        <!-- Personal Info -->
+        <div>
+          <h4 style="font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">Personal Info</h4>
+          <div style="display: grid; gap: 8px; font-size: 14px;">
+            <div style="display: flex; gap: 8px;"><i data-lucide="phone" style="width: 16px; color: var(--text-muted);"></i> <span id="modal-phone"></span></div>
+            <div style="display: flex; gap: 8px;"><i data-lucide="mail" style="width: 16px; color: var(--text-muted);"></i> <span id="modal-email"></span></div>
+            <div style="display: flex; gap: 8px;"><i data-lucide="map-pin" style="width: 16px; color: var(--text-muted);"></i> <span id="modal-location"></span></div>
+          </div>
+        </div>
+        <!-- Account Info -->
+        <div>
+          <h4 style="font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">Account Info</h4>
+          <div style="display: grid; gap: 8px; font-size: 14px;">
+            <div><span class="text-muted">Manager:</span> <span id="modal-manager" style="font-weight: 600;"></span></div>
+            <div><span class="text-muted">Registered:</span> <span id="modal-registered"></span></div>
+            <div><span class="text-muted">Last Login:</span> <span id="modal-login"></span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
+        <h4 style="font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 16px;">Sales Performance</h4>
+        <div class="responsive-grid-3" style="gap: 12px;">
+          <div style="background: var(--surface-muted); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Bookings</div>
+            <div id="modal-bookings" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">0</div>
+          </div>
+          <div style="background: var(--surface-muted); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Site Visits</div>
+            <div id="modal-visits" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">0</div>
+          </div>
+          <div style="background: var(--surface-muted); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Earned Comm.</div>
+            <div id="modal-commission" style="font-size: 20px; font-weight: 700; color: var(--success);">₹0</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
+        <h4 style="font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">Documents</h4>
+        <div style="display: flex; gap: 16px;">
+          <div style="font-size: 13px;"><span class="text-muted">Aadhaar:</span> <span id="modal-doc-aadhaar" style="font-weight: 600;"></span></div>
+          <div style="font-size: 13px;"><span class="text-muted">PAN:</span> <span id="modal-doc-pan" style="font-weight: 600;"></span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let teamTreeData = [];
+  let currentView = 'list';
+
+  function setView(view) {
+    currentView = view;
+    document.getElementById('view-list').style.display = view === 'list' ? 'block' : 'none';
+    document.getElementById('view-tree').style.display = view === 'tree' ? 'block' : 'none';
+    
+    const btnList = document.getElementById('btn-list');
+    const btnTree = document.getElementById('btn-tree');
+    
+    if (view === 'list') {
+      btnList.style.background = 'var(--surface)';
+      btnList.style.color = 'var(--text-primary)';
+      btnList.style.boxShadow = 'var(--shadow-sm)';
+      btnTree.style.background = 'transparent';
+      btnTree.style.color = 'var(--text-muted)';
+      btnTree.style.boxShadow = 'none';
+    } else {
+      btnTree.style.background = 'var(--surface)';
+      btnTree.style.color = 'var(--text-primary)';
+      btnTree.style.boxShadow = 'var(--shadow-sm)';
+      btnList.style.background = 'transparent';
+      btnList.style.color = 'var(--text-muted)';
+      btnList.style.boxShadow = 'none';
+    }
+    
+    if (view === 'list') renderList();
+    if (view === 'tree') renderTree();
+  }
+
+  async function initTeam() {
+    try {
+      // 1. Load Stats
+      const statsRes = await fetch('/api/team/stats');
+      const statsData = await statsRes.json();
+      if (statsData.success) {
+        document.getElementById('stat-direct').innerText = statsData.stats.directMembers;
+        document.getElementById('stat-total').innerText = statsData.stats.totalDownline;
+        document.getElementById('stat-bookings').innerText = statsData.stats.teamBookings;
+        document.getElementById('stat-commission').innerText = '₹' + statsData.stats.teamCommission.toLocaleString();
+      }
+
+      // 2. Load Tree
+      const treeRes = await fetch('/api/team/tree');
+      const treeData = await treeRes.json();
+      if (treeData.success) {
+        teamTreeData = treeData.tree;
+        renderList();
+      }
+    } catch(e) {}
+  }
+
+  function handleSearch() {
+    if (currentView === 'list') renderList();
+    if (currentView === 'tree') renderTree();
+  }
+
+  // Flattens the recursive tree for list view rendering
+  function flattenTree(tree) {
+    let flat = [];
+    tree.forEach(node => {
+      flat.push(node);
+      flat = flat.concat(flattenTree(node.children));
+    });
+    return flat;
+  }
+
+  function renderList() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const statusF = document.getElementById('statusFilter').value;
+    const managerF = document.getElementById('managerFilter').value;
+    
+    const allMembers = flattenTree(teamTreeData);
+    
+    // Populate Managers Filter dynamically if not populated
+    const managerSelect = document.getElementById('managerFilter');
+    if (managerSelect.options.length === 1) {
+      const managers = [...new Set(allMembers.map(m => m.managerName))].filter(n => n !== 'Unassigned');
+      managers.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        managerSelect.appendChild(opt);
+      });
+    }
+
+    const filtered = allMembers.filter(m => {
+      const matchQ = m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q) || m.phone.includes(q) || m.email.toLowerCase().includes(q);
+      const matchS = statusF === 'ALL' || m.status === statusF;
+      const matchM = managerF === 'ALL' || m.managerName === managerF;
+      return matchQ && matchS && matchM;
+    });
+
+    // Make containers visible correctly
+    document.getElementById('desktop-list-container').style.display = window.innerWidth >= 769 ? 'block' : 'none';
+    document.getElementById('mobile-list-container').style.display = window.innerWidth < 769 ? 'flex' : 'none';
+
+    // 1. Desktop HTML
+    const tbody = document.getElementById('desktop-team-tbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center;" class="text-muted"><i data-lucide="users" style="width: 48px; height: 48px; color: var(--border); margin-bottom: 16px;"></i><br>No team members found.</td></tr>';
+      document.getElementById('mobile-list-container').innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No members found.</div>';
+      lucide.createIcons();
+      return;
+    }
+
+    let deskHtml = '';
+    let mobHtml = '';
+
+    filtered.forEach(m => {
+      let badge = m.status === 'ACTIVE' 
+        ? '<span style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 12px;"></i> ACTIVE</span>'
+        : '<span style="background: var(--error-bg); color: var(--error); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="x-circle" style="width: 12px;"></i> INACTIVE</span>';
+      
+      const photoHtml = m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">` : m.name.substring(0,2).toUpperCase();
+      const encodedData = encodeURIComponent(JSON.stringify(m));
+
+      // Desktop Row
+      deskHtml += `
+        <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 16px var(--space-6);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--surface-muted); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; overflow: hidden;">${photoHtml}</div>
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${m.name}</div>
+                <div style="font-family: monospace; font-size: 12px; color: var(--text-muted); margin-top: 2px;">${m.code}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-size: 13px;">${m.phone}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${m.email}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-size: 13px; font-weight: 500;">${m.managerName}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${m.managerRole}</div>
+          </td>
+          <td style="padding: 16px;">${badge}</td>
+          <td style="padding: 16px var(--space-6); text-align: right;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--success); margin-bottom: 4px;">₹${(m.stats.commissionEarned || 0).toLocaleString()}</div>
+            <button onclick="openModal('${encodedData}')" class="btn" style="padding: 6px 12px; font-size: 12px; border: 1px solid var(--border); background: var(--surface);">View Details</button>
+          </td>
+        </tr>
+      `;
+
+      // Mobile Card
+      mobHtml += `
+        <div class="card" style="padding: 16px; border: 1px solid var(--border-light); display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--surface-muted); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; overflow: hidden; flex-shrink: 0;">${photoHtml}</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 16px; margin-bottom: 2px;">${m.name}</div>
+              <div style="font-family: monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">${m.code}</div>
+              ${badge}
+            </div>
+          </div>
+          
+          <div style="display: grid; gap: 4px; font-size: 13px;">
+            <div style="display: flex; gap: 8px;"><i data-lucide="phone" style="width: 14px; color: var(--text-muted);"></i> ${m.phone}</div>
+            <div style="display: flex; gap: 8px;"><i data-lucide="mail" style="width: 14px; color: var(--text-muted);"></i> <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${m.email}</span></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-light); padding-top: 12px;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bookings</div>
+              <div style="font-weight: 700; font-size: 15px;">${m.stats.bookings}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Commission</div>
+              <div style="font-weight: 700; font-size: 15px; color: var(--success);">₹${(m.stats.commissionEarned || 0).toLocaleString()}</div>
+            </div>
+          </div>
+          
+          <button onclick="openModal('${encodedData}')" class="btn btn-primary" style="width: 100%; justify-content: center;">View Details</button>
+        </div>
+      `;
+    });
+
+    tbody.innerHTML = deskHtml;
+    document.getElementById('mobile-list-container').innerHTML = mobHtml;
+    lucide.createIcons();
+  }
+
+  // Handle Resize for toggling desktop/mobile views seamlessly
+  window.addEventListener('resize', () => {
+    if (currentView === 'list') {
+      document.getElementById('desktop-list-container').style.display = window.innerWidth >= 769 ? 'block' : 'none';
+      document.getElementById('mobile-list-container').style.display = window.innerWidth < 769 ? 'flex' : 'none';
+    }
+  });
+
+  function openModal(dataString) {
+    const m = JSON.parse(decodeURIComponent(dataString));
+    const photoHtml = m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">` : m.name.substring(0,2).toUpperCase();
+    
+    document.getElementById('modal-photo').innerHTML = photoHtml;
+    document.getElementById('modal-name').innerText = m.name;
+    document.getElementById('modal-id').innerText = m.code;
+    
+    let badge = m.status === 'ACTIVE' 
+      ? '<span style="background: var(--success-bg); color: var(--success); padding: 6px 12px; border-radius: var(--radius-pill); font-weight: 700; font-size: 12px;">ACTIVE</span>'
+      : '<span style="background: var(--error-bg); color: var(--error); padding: 6px 12px; border-radius: var(--radius-pill); font-weight: 700; font-size: 12px;">INACTIVE</span>';
+    document.getElementById('modal-status').innerHTML = badge;
+
+    document.getElementById('modal-phone').innerText = m.phone;
+    document.getElementById('modal-email').innerText = m.email;
+    document.getElementById('modal-location').innerText = m.location;
+    
+    document.getElementById('modal-manager').innerText = m.managerName + (m.managerRole ? ` (${m.managerRole})` : '');
+    document.getElementById('modal-registered').innerText = m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'N/A';
+    document.getElementById('modal-login').innerText = m.lastLogin ? new Date(m.lastLogin).toLocaleString() : 'N/A';
+
+    document.getElementById('modal-bookings').innerText = m.stats.bookings;
+    document.getElementById('modal-visits').innerText = m.stats.siteVisits;
+    document.getElementById('modal-commission').innerText = '₹' + (m.stats.commissionEarned || 0).toLocaleString();
+
+    document.getElementById('modal-doc-aadhaar').innerText = m.docs.aadhaar;
+    document.getElementById('modal-doc-pan').innerText = m.docs.pan;
+
+    document.getElementById('associate-modal').style.display = 'flex';
+    lucide.createIcons();
+  }
+
+  function closeModal() {
+    document.getElementById('associate-modal').style.display = 'none';
+  }
+
+  function buildTreeHTML(nodes, level = 0, query = '') {
+    if (!nodes || nodes.length === 0) return '';
+    let html = '';
+    const indent = level * 30; // pixels
+    
+    nodes.forEach(node => {
+      const match = query === '' || node.name.toLowerCase().includes(query) || node.code.toLowerCase().includes(query);
+      // If we are searching, and this node doesn't match but a child might, we still need to traverse.
+      // But for simplicity, we just expand the tree. Let's filter visually if query exists.
+      
+      const childHtml = buildTreeHTML(node.children, level + 1, query);
+      const hasVisibleChildren = childHtml.trim() !== '';
+
+      if (match || hasVisibleChildren) {
+        let badge = node.status === 'ACTIVE' ? '🟢' : '🔴';
+        html += `
+          <div style="margin-left: ${indent}px; padding: 4px 0; border-left: 1px dashed var(--border-light); padding-left: 12px; position: relative;">
+            <div style="position: absolute; left: 0; top: 14px; width: 10px; height: 1px; background: var(--border-light);"></div>
+            <strong style="${match && query !== '' ? 'background: #fff3cd;' : ''}">${badge} ${node.name} (${node.code})</strong>
+            <span class="text-muted" style="margin-left: 8px; font-size: 12px;">Com: ${node.commission} | Team: ${node.teamCount}</span>
+            ${childHtml}
+          </div>
+        `;
+      }
+    });
+    return html;
+  }
+
+  function renderTree() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const container = document.getElementById('tree-container');
+    
+    if (teamTreeData.length === 0) {
+      container.innerHTML = 'No team members in your downline.';
+      return;
+    }
+
+    let html = buildTreeHTML(teamTreeData, 0, q);
+    if (!html) html = 'No members matched the search.';
+    container.innerHTML = html;
+  }
+
+  initTeam();
+</script>
+
+<%- include('../partials/footer') %>

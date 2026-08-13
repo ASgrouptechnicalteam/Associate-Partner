@@ -1,0 +1,372 @@
+<%- include('../partials/head') %>
+
+<style>
+  .help-tab {
+    padding: 12px 24px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .help-tab.active {
+    color: var(--brand-primary);
+    border-bottom: 2px solid var(--brand-primary);
+  }
+  .faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .faq-question {
+    padding: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-main);
+  }
+  .faq-answer {
+    padding: 16px;
+    display: none;
+    color: var(--text-main);
+    border-top: 1px solid var(--border-color);
+  }
+  .faq-item.open .faq-answer {
+    display: block;
+  }
+  .faq-item.open .faq-question i {
+    transform: rotate(180deg);
+  }
+  
+  .help-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--space-6);
+  }
+  
+  .help-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 300px;
+    background: white;
+  }
+  
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: var(--space-6);
+  }
+  
+  .desktop-categories {
+    display: block;
+  }
+  
+  .mobile-categories {
+    display: none;
+    margin-bottom: var(--space-4);
+  }
+  
+  .help-page-container {
+    padding-bottom: 24px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .help-header-container {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+    .help-search {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .faq-grid {
+      grid-template-columns: 1fr;
+    }
+    .desktop-categories {
+      display: none;
+    }
+    .mobile-categories {
+      display: block;
+    }
+    .help-page-container {
+      padding-bottom: 80px; /* space for bottom nav */
+    }
+  }
+</style>
+
+<div class="help-page-container">
+  <div class="help-header-container">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-navy);">Help Center</h1>
+      <p class="text-muted">Find answers to common questions and watch tutorials.</p>
+    </div>
+    
+    <div class="input-control help-search">
+      <i data-lucide="search" style="color: var(--text-muted); width: 18px;"></i>
+      <input type="text" id="searchInput" placeholder="Search FAQs & Tutorials..." style="border: none; outline: none; width: 100%;" onkeyup="filterHelp()">
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: var(--space-6);">
+    <div class="help-tab active" onclick="switchTab('faq')">FAQs</div>
+    <div class="help-tab" onclick="switchTab('tutorials')">Tutorials</div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div id="tab-faq">
+    <div class="faq-grid">
+      
+      <!-- Categories Sidebar -->
+      <div>
+        <div class="card desktop-categories" style="padding: var(--space-4); align-self: start;">
+          <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--brand-navy);">Categories</h3>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;" id="faq-categories">
+            <li style="cursor: pointer; color: var(--brand-primary); font-weight: 500;" onclick="filterCategory('All', this)">All Categories</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Account', this)">Account</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Projects', this)">Projects</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Bookings', this)">Bookings</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Commission', this)">Commission</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Team', this)">Team</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Travel', this)">Travel Allowance</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Visits', this)">Site Visits</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Reviews', this)">Reviews</li>
+            <li style="cursor: pointer; color: var(--text-muted);" onclick="filterCategory('Security', this)">Security</li>
+          </ul>
+        </div>
+
+        <div class="mobile-categories">
+          <select id="mobile-category-select" class="input-control" style="width: 100%; box-sizing: border-box;" onchange="filterCategory(this.value, null)">
+            <option value="All">All Categories</option>
+            <option value="Account">Account</option>
+            <option value="Projects">Projects</option>
+            <option value="Bookings">Bookings</option>
+            <option value="Commission">Commission</option>
+            <option value="Team">Team</option>
+            <option value="Travel">Travel Allowance</option>
+            <option value="Visits">Site Visits</option>
+            <option value="Reviews">Reviews</option>
+            <option value="Security">Security</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- FAQ List -->
+      <div id="faq-list">
+        
+        <div class="faq-item searchable" data-category="Account">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How do I update my profile picture? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">You can update your profile picture by navigating to "My Profile" from the bottom of the sidebar. Click on your existing avatar to upload a new one.</div>
+        </div>
+        
+        <div class="faq-item searchable" data-category="Projects">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            Where can I download project brochures? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">Navigate to the "Projects" tab. Click on any assigned project to view its details, where you will find download links for Brochures and Layouts.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Bookings">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How do I submit a new booking? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">Go to the "Bookings" tab and click the "+ New Booking" button. You will need to provide customer details, select an available unit from a project, and enter the payment information.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Commission">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            When are commissions paid? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">Commissions are automatically credited to your configured bank account once a booking is fully Verified by the Management and all initial customer payments are cleared.</div>
+        </div>
+        
+        <div class="faq-item searchable" data-category="Team">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How does the downline team hierarchy work? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">You can view all associates who registered using your referral code. The system uses a recursive tree, meaning you can see your direct recruits, as well as their recruits, cascading infinitely downwards. You cannot view siblings or uplines.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Travel">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How do I claim a Travel Allowance? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">Go to "Travel Allowance" and submit a request with your route details and receipt. The Management Desk (MD) will review and approve your request.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Visits">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How do I log a site visit outcome? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">In the Site Visits tab, change the status of your visit to "COMPLETED". This will trigger a mandatory form where you must log the customer's interest level and any required follow-ups.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Reviews">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            Are customer reviews editable? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">No. To ensure authenticity, once a customer submits a review via your unique link, it is cryptographically locked and cannot be altered by anyone.</div>
+        </div>
+
+        <div class="faq-item searchable" data-category="Security">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            How do I change my password? <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="faq-answer">Navigate to "My Profile" and click the "Change Password" button in the Security section.</div>
+        </div>
+        
+        <div id="no-faq" style="display:none; text-align: center; padding: 24px; color: var(--text-muted);">No FAQs found.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorials Section -->
+  <div id="tab-tutorials" style="display: none;">
+    <div class="responsive-grid-3" id="tutorial-list">
+      
+      <div class="card searchable-tut" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="height: 140px; background: linear-gradient(135deg, var(--brand-navy), var(--brand-primary)); display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="layout-dashboard" style="width: 48px; height: 48px; opacity: 0.8;"></i>
+        </div>
+        <div style="padding: var(--space-4); display: flex; flex-direction: column; gap: 8px;">
+          <h4 class="tut-title" style="margin: 0; font-size: 16px;">How to use the Dashboard</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">Learn how to read your KPI widgets and track your daily sales pipeline.</p>
+          <a href="#" style="color: var(--brand-primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: auto;">Watch Video →</a>
+        </div>
+      </div>
+
+      <div class="card searchable-tut" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="height: 140px; background: linear-gradient(135deg, #0f172a, #334155); display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.8;"></i>
+        </div>
+        <div style="padding: var(--space-4); display: flex; flex-direction: column; gap: 8px;">
+          <h4 class="tut-title" style="margin: 0; font-size: 16px;">How to Create a Booking</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">A step-by-step guide to reserving units and submitting customer payments.</p>
+          <a href="#" style="color: var(--brand-primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: auto;">Watch Video →</a>
+        </div>
+      </div>
+
+      <div class="card searchable-tut" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="height: 140px; background: linear-gradient(135deg, #166534, #22c55e); display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="users" style="width: 48px; height: 48px; opacity: 0.8;"></i>
+        </div>
+        <div style="padding: var(--space-4); display: flex; flex-direction: column; gap: 8px;">
+          <h4 class="tut-title" style="margin: 0; font-size: 16px;">How to Refer an Associate</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">Grow your downline by submitting a referral request to the Management.</p>
+          <a href="#" style="color: var(--brand-primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: auto;">Watch Video →</a>
+        </div>
+      </div>
+
+      <div class="card searchable-tut" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="height: 140px; background: linear-gradient(135deg, #854d0e, #eab308); display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="coins" style="width: 48px; height: 48px; opacity: 0.8;"></i>
+        </div>
+        <div style="padding: var(--space-4); display: flex; flex-direction: column; gap: 8px;">
+          <h4 class="tut-title" style="margin: 0; font-size: 16px;">How Commission Works</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">Understand percentage vs fixed commissions and how to track ledger payouts.</p>
+          <a href="#" style="color: var(--brand-primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: auto;">Watch Video →</a>
+        </div>
+      </div>
+      
+      <div class="card searchable-tut" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="height: 140px; background: linear-gradient(135deg, #6b21a8, #a855f7); display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="smartphone" style="width: 48px; height: 48px; opacity: 0.8;"></i>
+        </div>
+        <div style="padding: var(--space-4); display: flex; flex-direction: column; gap: 8px;">
+          <h4 class="tut-title" style="margin: 0; font-size: 16px;">How to Install the App</h4>
+          <p style="font-size: 13px; color: var(--text-muted);">Install the PWA natively on iOS and Android for a full-screen experience.</p>
+          <a href="#" style="color: var(--brand-primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: auto;">Read Article →</a>
+        </div>
+      </div>
+
+    </div>
+    <div id="no-tut" style="display:none; text-align: center; padding: 24px; color: var(--text-muted);">No tutorials found.</div>
+  </div>
+
+</div>
+
+<script>
+  let activeTab = 'faq';
+  let activeCategory = 'All';
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.help-tab').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (tab === 'faq') {
+      document.getElementById('tab-faq').style.display = 'block';
+      document.getElementById('tab-tutorials').style.display = 'none';
+    } else {
+      document.getElementById('tab-faq').style.display = 'none';
+      document.getElementById('tab-tutorials').style.display = 'block';
+    }
+    filterHelp();
+  }
+
+  function filterCategory(cat, el) {
+    activeCategory = cat;
+    const list = document.getElementById('faq-categories').children;
+    for(let i=0; i<list.length; i++) {
+      list[i].style.color = 'var(--text-muted)';
+      list[i].style.fontWeight = 'normal';
+    }
+    if (el) {
+      el.style.color = 'var(--brand-primary)';
+      el.style.fontWeight = '500';
+    }
+    document.getElementById('mobile-category-select').value = cat;
+    filterHelp();
+  }
+
+  function filterHelp() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    
+    // Filter FAQs
+    const faqs = document.querySelectorAll('.searchable');
+    let faqCount = 0;
+    faqs.forEach(faq => {
+      const text = faq.innerText.toLowerCase();
+      const cat = faq.getAttribute('data-category');
+      
+      const matchesSearch = text.includes(q);
+      const matchesCat = activeCategory === 'All' || cat === activeCategory;
+      
+      if (matchesSearch && matchesCat) {
+        faq.style.display = 'block';
+        faqCount++;
+      } else {
+        faq.style.display = 'none';
+      }
+    });
+    document.getElementById('no-faq').style.display = faqCount === 0 ? 'block' : 'none';
+
+    // Filter Tutorials
+    const tuts = document.querySelectorAll('.searchable-tut');
+    let tutCount = 0;
+    tuts.forEach(tut => {
+      const text = tut.querySelector('.tut-title').innerText.toLowerCase();
+      if (text.includes(q)) {
+        tut.style.display = 'flex';
+        tutCount++;
+      } else {
+        tut.style.display = 'none';
+      }
+    });
+    document.getElementById('no-tut').style.display = tutCount === 0 ? 'block' : 'none';
+  }
+  
+  lucide.createIcons();
+</script>
+
+<%- include('../partials/footer') %>

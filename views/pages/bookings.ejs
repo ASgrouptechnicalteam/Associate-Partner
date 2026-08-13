@@ -1,0 +1,156 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Booking Management</h1>
+      <p class="text-muted">Track and manage inventory bookings.</p>
+    </div>
+    <a href="/bookings/new" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="plus"></i> New Booking
+    </a>
+  </div>
+
+  <div class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; background: var(--surface);">
+    <div style="flex: 1; min-width: 200px;">
+      <label class="input-label" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px; display: block;">Date Filter</label>
+      <input type="date" id="filter-date" class="input-control" style="width: 100%;" />
+    </div>
+    <div style="flex: 1; min-width: 200px;">
+      <label class="input-label" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px; display: block;">Status</label>
+      <select id="filter-status" class="input-control" style="width: 100%;">
+        <option value="">All Statuses</option>
+        <option value="PENDING_AM">Pending Verification</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="REJECTED">Rejected</option>
+      </select>
+    </div>
+    <button onclick="fetchBookings()" class="btn btn-primary" style="min-width: 120px;"><i data-lucide="filter" style="width: 16px;"></i> Filter</button>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-wrapper">
+      <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead style="background: var(--surface-muted);">
+          <tr style="text-align: left;">
+            <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Booking ID</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Customer</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Project / Unit</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Associate</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Amount</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Status</th>
+            <% if (user.role === 'AM' || user.role === 'MD') { %>
+              <th style="padding: 16px var(--space-6); text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Action</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody id="bookings-tbody">
+          <tr><td colspan="7" style="padding: 40px; text-align: center;" class="text-muted"><div class="skeleton" style="height: 40px; width: 100%; border-radius: 8px; margin-bottom: 8px;"></div><div class="skeleton" style="height: 40px; width: 100%; border-radius: 8px;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function fetchBookings() {
+    const status = document.getElementById('filter-status').value;
+    const date = document.getElementById('filter-date').value;
+    
+    let url = '/api/bookings?';
+    if (status) url += `status=${status}&`;
+    if (date) url += `date=${date}&`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) renderBookings(data.bookings);
+    } catch(e) {
+      document.getElementById('bookings-tbody').innerHTML = '<tr><td colspan="7" class="text-error" style="padding: 40px; text-align: center;">Failed to load bookings</td></tr>';
+    }
+  }
+
+  function renderBookings(bookings) {
+    const tbody = document.getElementById('bookings-tbody');
+    if (!bookings || bookings.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding: 60px; text-align: center;" class="text-muted"><i data-lucide="file-text" style="width: 48px; height: 48px; color: var(--border); margin-bottom: 16px;"></i><br>No bookings found.</td></tr>';
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '';
+    bookings.forEach(b => {
+      let badgeHtml = '';
+      if (b.status === 'CONFIRMED') badgeHtml = '<span style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 12px;"></i> CONFIRMED</span>';
+      else if (b.status === 'REJECTED') badgeHtml = '<span style="background: var(--error-bg); color: var(--error); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="x-circle" style="width: 12px;"></i> REJECTED</span>';
+      else badgeHtml = '<span style="background: var(--warning-bg); color: var(--warning); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="clock" style="width: 12px;"></i> PENDING</span>';
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 16px var(--space-6);">
+            <div style="font-family: monospace; font-weight: 600; color: var(--text-primary); font-size: 13px;">#${b.id.substring(0,8).toUpperCase()}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${new Date(b.bookingDate).toLocaleDateString()}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 600; color: var(--text-primary);">${b.customerName}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;"><i data-lucide="phone" style="width: 10px; height: 10px;"></i> ${b.customerPhone}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 600; color: var(--text-primary);">${b.project.name}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Unit: ${b.unit.identifier}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">${b.associate.name.substring(0,2).toUpperCase()}</div>
+              <div>
+                <div style="font-weight: 500; font-size: 13px; color: var(--text-primary);">${b.associate.name}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${b.associate.userId}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding: 16px; font-weight: 700; color: var(--text-primary);">₹${b.bookingAmount.toLocaleString()}</td>
+          <td style="padding: 16px;">${badgeHtml}</td>
+          <% if (user.role === 'AM' || user.role === 'MD') { %>
+            <td style="padding: 16px var(--space-6); text-align: right;">
+              ${b.status === 'PENDING_AM' ? `
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                  <button onclick="verifyBooking('${b.id}')" class="btn btn-primary" style="height: 32px; padding: 0 12px; font-size: 12px;">Verify</button>
+                  <button onclick="rejectBooking('${b.id}')" class="btn btn-secondary" style="height: 32px; padding: 0 12px; font-size: 12px; color: var(--error); border-color: var(--error-bg); background: var(--error-bg);">Reject</button>
+                </div>
+              ` : '<span style="color: var(--text-muted); font-size: 12px;">Processed</span>'}
+            </td>
+          <% } %>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  <% if (user.role === 'AM' || user.role === 'MD') { %>
+    async function verifyBooking(id) {
+      if(!confirm('Are you sure you want to verify and CONFIRM this booking?')) return;
+      try {
+        const res = await fetch(`/api/bookings/${id}/verify`, { method: 'POST' });
+        const data = await res.json();
+        if(data.success) fetchBookings();
+        else alert(data.error);
+      } catch(e) {}
+    }
+
+    async function rejectBooking(id) {
+      if(!confirm('Are you sure you want to REJECT this booking? The unit will be released.')) return;
+      try {
+        const res = await fetch(`/api/bookings/${id}/reject`, { method: 'POST' });
+        const data = await res.json();
+        if(data.success) fetchBookings();
+        else alert(data.error);
+      } catch(e) {}
+    }
+  <% } %>
+
+  fetchBookings();
+  lucide.createIcons();
+</script>
+
+<%- include('../partials/footer') %>

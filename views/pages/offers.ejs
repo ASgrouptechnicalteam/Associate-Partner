@@ -1,0 +1,461 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Offers & Promotions</h1>
+      <% if (user.role === 'MD' || user.role === 'AM') { %>
+        <p class="text-muted">Manage benefits, promotions, and incentives.</p>
+      <% } else { %>
+        <p class="text-muted">Browse active benefits and offers.</p>
+      <% } %>
+    </div>
+    
+    <% if (user.role === 'MD' || user.role === 'AM') { %>
+      <button class="btn btn-primary" onclick="openOfferModal()">+ Add Offer</button>
+    <% } %>
+  </div>
+
+  <% if (user.role === 'MD' || user.role === 'AM') { %>
+    <!-- MD / AM MANAGEMENT VIEW -->
+    <div style="display: flex; gap: 8px; margin-bottom: var(--space-6); border-bottom: 1px solid var(--border-light); padding-bottom: 12px; overflow-x: auto;">
+      <button class="btn tab-btn active" onclick="switchMgmtTab('ALL')" id="mgmt-tab-ALL">All Offers</button>
+      <button class="btn tab-btn" onclick="switchMgmtTab('ACTIVE')" id="mgmt-tab-ACTIVE">Active</button>
+      <button class="btn tab-btn" onclick="switchMgmtTab('SCHEDULED')" id="mgmt-tab-SCHEDULED">Scheduled</button>
+      <button class="btn tab-btn" onclick="switchMgmtTab('INACTIVE')" id="mgmt-tab-INACTIVE">Inactive</button>
+    </div>
+
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="min-width: 800px; margin: 0;">
+        <thead>
+          <tr>
+            <th>Offer Title</th>
+            <th>Target</th>
+            <th>Type</th>
+            <th>Validity</th>
+            <th>Status</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="mgmt-offers-tbody">
+          <tr><td colspan="6" style="text-align: center; padding: 40px;" class="text-muted">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Stacked Cards for Management -->
+    <div id="mgmt-offers-mobile" class="mobile-only" style="display: none; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4);">
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="offerModal" class="modal" style="display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5); overflow-y: auto; padding: var(--space-4);">
+      <div class="card" style="max-width: 600px; margin: 40px auto; position: relative;">
+        <button class="btn" onclick="closeOfferModal()" style="position: absolute; right: 16px; top: 16px; background: transparent; padding: 4px;"><i data-lucide="x"></i></button>
+        <h2 id="modalTitle" style="margin-bottom: var(--space-5);">Create Offer</h2>
+        
+        <form id="offerForm" onsubmit="submitOffer(event)">
+          <input type="hidden" id="offerId" name="offerId">
+          
+          <h4 style="margin-bottom: var(--space-3); color: var(--primary);">Basic Information</h4>
+          <div class="input-group">
+            <label class="input-label">Offer Title *</label>
+            <input type="text" id="title" name="title" class="input-control" required>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">Description</label>
+            <textarea id="description" name="description" class="input-control" rows="3"></textarea>
+          </div>
+
+          <div class="responsive-grid-2">
+            <div class="input-group">
+              <label class="input-label">Target Audience *</label>
+              <select id="type" name="type" class="input-control" required>
+                <option value="OFFER_CUSTOMER">Customers</option>
+                <option value="OFFER_ASSOCIATE">Associates</option>
+                <option value="OFFER_ACHIEVED">Achieved Offers</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Offer Type</label>
+              <select id="offerType" name="offerType" class="input-control">
+                <option value="">-- Select Type --</option>
+                <option value="Discount">Discount</option>
+                <option value="Cashback">Cashback</option>
+                <option value="Commission Bonus">Commission Bonus</option>
+                <option value="Festival Offer">Festival Offer</option>
+                <option value="Special Promotion">Special Promotion</option>
+              </select>
+            </div>
+          </div>
+
+          <h4 style="margin-bottom: var(--space-3); margin-top: var(--space-4); color: var(--primary);">Financial & Benefit Details</h4>
+          <div class="responsive-grid-2">
+            <div class="input-group">
+              <label class="input-label">Discount Amount (₹)</label>
+              <input type="number" id="discountAmount" name="discountAmount" class="input-control">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Bonus Amount (₹)</label>
+              <input type="number" id="bonusAmount" name="bonusAmount" class="input-control">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Commission Bonus (%)</label>
+              <input type="number" step="0.1" id="commissionBonus" name="commissionBonus" class="input-control">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Other Benefit</label>
+              <input type="text" id="otherBenefit" name="otherBenefit" class="input-control">
+            </div>
+          </div>
+
+          <h4 style="margin-bottom: var(--space-3); margin-top: var(--space-4); color: var(--primary);">Validity</h4>
+          <div class="responsive-grid-2">
+            <div class="input-group">
+              <label class="input-label">Start Date *</label>
+              <input type="date" id="startDate" name="startDate" class="input-control" required>
+            </div>
+            <div class="input-group">
+              <label class="input-label">End Date *</label>
+              <input type="date" id="endDate" name="endDate" class="input-control" required>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-top: var(--space-4);">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+              <input type="checkbox" id="isActive" name="isActive" checked style="width: 18px; height: 18px;">
+              Offer is currently active
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+            <button type="button" class="btn btn-secondary" onclick="closeOfferModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">Save Offer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  <% } else { %>
+    <!-- ASSOCIATE VIEW -->
+    <div style="display: flex; gap: 8px; margin-bottom: var(--space-6); border-bottom: 1px solid var(--border-light); padding-bottom: 12px; overflow-x: auto;">
+      <button class="btn" style="background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm); border-radius: var(--radius-pill); padding: 8px 16px; font-weight: 600;" onclick="switchTab('OFFER_CUSTOMER')" id="tab-OFFER_CUSTOMER">Customer Offers</button>
+      <button class="btn" style="background: transparent; color: var(--text-muted); border-radius: var(--radius-pill); padding: 8px 16px; font-weight: 600;" onclick="switchTab('OFFER_ASSOCIATE')" id="tab-OFFER_ASSOCIATE">Associate Offers</button>
+      <button class="btn" style="background: transparent; color: var(--text-muted); border-radius: var(--radius-pill); padding: 8px 16px; font-weight: 600;" onclick="switchTab('OFFER_ACHIEVED')" id="tab-OFFER_ACHIEVED">Achieved Offers</button>
+    </div>
+
+    <div id="offers-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-6);">
+      <div class="skeleton" style="height: 250px; border-radius: var(--radius-lg);"></div>
+      <div class="skeleton" style="height: 250px; border-radius: var(--radius-lg);"></div>
+    </div>
+  <% } %>
+</div>
+
+<style>
+  .tab-btn {
+    background: transparent; color: var(--text-muted); border-radius: var(--radius-pill); padding: 8px 16px; font-weight: 600;
+  }
+  .tab-btn.active {
+    background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm);
+  }
+  @media (max-width: 768px) {
+    .desktop-only-table { display: none; }
+    #mgmt-offers-mobile { display: flex !important; }
+    .table { display: none; }
+  }
+</style>
+
+<script>
+  const userRole = '<%= user.role %>';
+  let allPromotions = [];
+  let activePromotions = {};
+
+  // For Associates
+  async function fetchActiveOffers() {
+    try {
+      const res = await fetch('/api/promotions/active');
+      const data = await res.json();
+      if (data.success) {
+        activePromotions = data.promotions;
+        switchTab('OFFER_CUSTOMER');
+      }
+    } catch(e) {
+      document.getElementById('offers-container').innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--error);">Error loading offers.</div>';
+    }
+  }
+
+  function switchTab(type) {
+    const tabs = ['OFFER_CUSTOMER', 'OFFER_ASSOCIATE', 'OFFER_ACHIEVED'];
+    tabs.forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if(!el) return;
+      if (t === type) {
+        el.style.background = 'var(--surface)';
+        el.style.color = 'var(--text-primary)';
+        el.style.boxShadow = 'var(--shadow-sm)';
+      } else {
+        el.style.background = 'transparent';
+        el.style.color = 'var(--text-muted)';
+        el.style.boxShadow = 'none';
+      }
+    });
+
+    const offers = activePromotions[type] || [];
+    renderOffers(offers);
+  }
+
+  function renderOffers(offers) {
+    const container = document.getElementById('offers-container');
+    if(!container) return;
+    
+    if (offers.length === 0) {
+      container.innerHTML = '<div style="grid-column: 1 / -1; padding: 80px 20px; text-align: center;"><h3 style="margin-bottom: 8px;">No active offers</h3><p class="text-muted">Check back later for new promotions.</p></div>';
+      return;
+    }
+
+    let html = '';
+    offers.forEach(o => {
+      let details = '';
+      if (o.discountAmount) details += `<span style="display:inline-block; margin-right:8px; background:var(--primary-bg); color:var(--primary); padding:2px 8px; border-radius:4px; font-size:12px; font-weight:600;">₹${o.discountAmount} Off</span>`;
+      if (o.bonusAmount) details += `<span style="display:inline-block; margin-right:8px; background:var(--success-bg); color:var(--success); padding:2px 8px; border-radius:4px; font-size:12px; font-weight:600;">₹${o.bonusAmount} Bonus</span>`;
+      if (o.offerType) details += `<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${o.offerType}</div>`;
+
+      html += `
+        <div class="card" style="display: flex; flex-direction: column; padding: var(--space-5);">
+          ${details}
+          <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.3;">${o.title}</h3>
+          <p class="text-muted" style="flex: 1; font-size: 14px; margin-bottom: 12px;">${o.description || ''}</p>
+          <div style="font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 12px;">
+            Valid: ${o.startDate ? new Date(o.startDate).toLocaleDateString() : 'Always'} - ${o.endDate ? new Date(o.endDate).toLocaleDateString() : 'No expiry'}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  // For MD / AM Management
+  async function fetchAllOffers() {
+    try {
+      const res = await fetch('/api/promotions');
+      const data = await res.json();
+      if (data.success) {
+        allPromotions = data.promotions;
+        switchMgmtTab('ALL');
+      }
+    } catch(e) {
+      const tb = document.getElementById('mgmt-offers-tbody');
+      if(tb) tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--error);">Error loading offers</td></tr>';
+    }
+  }
+
+  function switchMgmtTab(filter) {
+    const tabs = ['ALL', 'ACTIVE', 'SCHEDULED', 'INACTIVE'];
+    tabs.forEach(t => {
+      const el = document.getElementById('mgmt-tab-' + t);
+      if(!el) return;
+      if (t === filter) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+
+    const now = new Date();
+    let filtered = allPromotions;
+
+    if (filter === 'ACTIVE') {
+      filtered = allPromotions.filter(o => o.isActive && (!o.startDate || new Date(o.startDate) <= now) && (!o.endDate || new Date(o.endDate) >= now));
+    } else if (filter === 'SCHEDULED') {
+      filtered = allPromotions.filter(o => o.isActive && (o.startDate && new Date(o.startDate) > now));
+    } else if (filter === 'INACTIVE') {
+      filtered = allPromotions.filter(o => !o.isActive || (o.endDate && new Date(o.endDate) < now));
+    }
+
+    renderMgmtOffers(filtered);
+  }
+
+  function renderMgmtOffers(offers) {
+    const tbody = document.getElementById('mgmt-offers-tbody');
+    const mobileContainer = document.getElementById('mgmt-offers-mobile');
+    if(!tbody || !mobileContainer) return;
+
+    if (offers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;" class="text-muted">No offers found.<br><br><button class="btn btn-secondary" onclick="openOfferModal()">+ Add Offer</button></td></tr>';
+      mobileContainer.innerHTML = '<div class="card" style="text-align: center; padding: 40px;"><p class="text-muted mb-4">No offers found.</p><button class="btn btn-secondary" onclick="openOfferModal()">+ Add Offer</button></div>';
+      return;
+    }
+
+    let html = '';
+    let mobileHtml = '';
+    
+    offers.forEach(o => {
+      const targetMap = {
+        'OFFER_CUSTOMER': 'Customer',
+        'OFFER_ASSOCIATE': 'Associate',
+        'OFFER_ACHIEVED': 'Achieved'
+      };
+      const target = targetMap[o.type] || o.type;
+      const start = o.startDate ? new Date(o.startDate).toLocaleDateString() : 'Always';
+      const end = o.endDate ? new Date(o.endDate).toLocaleDateString() : 'No expiry';
+      
+      const now = new Date();
+      let statusStr = '';
+      let statusColor = '';
+      if (!o.isActive) {
+        statusStr = 'Inactive';
+        statusColor = 'var(--text-muted)';
+      } else if (o.endDate && new Date(o.endDate) < now) {
+        statusStr = 'Expired';
+        statusColor = 'var(--error)';
+      } else if (o.startDate && new Date(o.startDate) > now) {
+        statusStr = 'Scheduled';
+        statusColor = 'var(--warning)';
+      } else {
+        statusStr = 'Active';
+        statusColor = 'var(--success)';
+      }
+
+      const actions = `
+        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;" onclick='editOffer(${JSON.stringify(o).replace(/'/g, "&#39;")})'>Edit</button>
+        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="toggleOffer('${o.id}', ${!o.isActive})">${o.isActive ? 'Deactivate' : 'Activate'}</button>
+      `;
+
+      // Desktop row
+      html += `
+        <tr>
+          <td style="font-weight: 600; color: var(--text-primary);">${o.title}</td>
+          <td><span class="badge">${target}</span></td>
+          <td>${o.offerType || '-'}</td>
+          <td style="font-size: 12px; color: var(--text-muted);">${start} - ${end}</td>
+          <td><span style="color: ${statusColor}; font-weight: 600; font-size: 12px;">${statusStr}</span></td>
+          <td style="text-align: right;">${actions}</td>
+        </tr>
+      `;
+
+      // Mobile card
+      mobileHtml += `
+        <div class="card" style="padding: var(--space-4);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <h4 style="margin: 0;">${o.title}</h4>
+            <span style="color: ${statusColor}; font-weight: 600; font-size: 12px;">${statusStr}</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            Target: <strong>${target}</strong> &bull; Type: <strong>${o.offerType || '-'}</strong><br>
+            Validity: ${start} - ${end}
+          </p>
+          <div style="display: flex; gap: 8px;">
+            ${actions}
+          </div>
+        </div>
+      `;
+    });
+
+    tbody.innerHTML = html;
+    mobileContainer.innerHTML = mobileHtml;
+  }
+
+  function openOfferModal() {
+    document.getElementById('offerForm').reset();
+    document.getElementById('offerId').value = '';
+    document.getElementById('modalTitle').innerText = 'Create Offer';
+    document.getElementById('offerModal').style.display = 'block';
+  }
+
+  function closeOfferModal() {
+    document.getElementById('offerModal').style.display = 'none';
+  }
+
+  function editOffer(o) {
+    document.getElementById('offerId').value = o.id;
+    document.getElementById('title').value = o.title;
+    document.getElementById('description').value = o.description || '';
+    document.getElementById('type').value = o.type;
+    document.getElementById('offerType').value = o.offerType || '';
+    document.getElementById('discountAmount').value = o.discountAmount || '';
+    document.getElementById('bonusAmount').value = o.bonusAmount || '';
+    document.getElementById('commissionBonus').value = o.commissionBonus || '';
+    document.getElementById('otherBenefit').value = o.otherBenefit || '';
+    
+    if (o.startDate) document.getElementById('startDate').value = o.startDate.substring(0, 10);
+    if (o.endDate) document.getElementById('endDate').value = o.endDate.substring(0, 10);
+    
+    document.getElementById('isActive').checked = o.isActive;
+    
+    document.getElementById('modalTitle').innerText = 'Edit Offer';
+    document.getElementById('offerModal').style.display = 'block';
+  }
+
+  async function toggleOffer(id, isActive) {
+    if (!confirm(isActive ? 'Activate this offer?' : 'Deactivate this offer?')) return;
+    
+    try {
+      const res = await fetch('/api/promotions/' + id + '/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchAllOffers();
+      } else {
+        alert(data.error || 'Failed to toggle offer');
+      }
+    } catch(e) {
+      alert('Error toggling offer');
+    }
+  }
+
+  async function submitOffer(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.innerText = 'Saving...';
+
+    const id = document.getElementById('offerId').value;
+    const form = document.getElementById('offerForm');
+    const formData = new FormData(form);
+    
+    // Validate dates
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (start && end && new Date(start) > new Date(end)) {
+      alert("End date cannot be before start date.");
+      btn.disabled = false;
+      btn.innerText = 'Save Offer';
+      return;
+    }
+
+    try {
+      const url = id ? '/api/promotions/' + id : '/api/promotions';
+      const method = id ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
+        body: formData // uses multipart/form-data for image upload support built in the route
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        closeOfferModal();
+        fetchAllOffers();
+      } else {
+        alert(data.error || 'Failed to save offer');
+      }
+    } catch(e) {
+      alert('Error saving offer');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Save Offer';
+    }
+  }
+
+  if (userRole === 'MD' || userRole === 'AM') {
+    fetchAllOffers();
+  } else {
+    fetchActiveOffers();
+  }
+</script>
+
+<%- include('../partials/footer') %>

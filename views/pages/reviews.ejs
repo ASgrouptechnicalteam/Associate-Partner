@@ -1,0 +1,204 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Customer Reviews</h1>
+      <p class="text-muted">Request and track feedback from your clients.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showRequestModal()">+ Request Review</button>
+  </div>
+
+  <!-- Stats row -->
+  <div class="responsive-grid-3">
+    <div class="card" style="padding: var(--space-4); text-align: center;">
+      <h4 class="text-muted" style="margin-bottom: 8px;">Average Rating</h4>
+      <div id="stat-avg" style="font-size: 32px; font-weight: 700; color: #eab308;">0.0 <span style="font-size: 16px;">★</span></div>
+    </div>
+    <div class="card" style="padding: var(--space-4); text-align: center;">
+      <h4 class="text-muted" style="margin-bottom: 8px;">Total Reviews</h4>
+      <div id="stat-total" style="font-size: 32px; font-weight: 700; color: var(--brand-navy);">0</div>
+    </div>
+    <div class="card" style="padding: var(--space-4); text-align: center;">
+      <h4 class="text-muted" style="margin-bottom: 8px;">5-Star Distribution</h4>
+      <div id="stat-dist" style="font-size: 32px; font-weight: 700; color: var(--success);">0%</div>
+    </div>
+  </div>
+
+  <!-- Request Modal -->
+  <div id="request-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 500px; max-width: 90%; padding: var(--space-6);">
+      <h3 style="margin-bottom: var(--space-4);">Request New Review</h3>
+      
+      <div id="link-result" style="display: none; text-align: center; margin-bottom: var(--space-4);">
+        <p style="margin-bottom: 8px; color: var(--success); font-weight: 600;">Link Generated Successfully!</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="generated-link" class="input-control" readonly style="background: var(--bg-main);" />
+          <button type="button" class="btn btn-secondary" onclick="copyLink()">Copy</button>
+        </div>
+        <button type="button" class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="closeRequestModal()">Done</button>
+      </div>
+
+      <form id="requestForm">
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Customer Name</label>
+          <input type="text" name="customerName" class="input-control" required />
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Customer Phone</label>
+          <input type="tel" name="customerPhone" class="input-control" required />
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Project (Optional)</label>
+          <select name="projectId" id="project-select" class="input-control">
+            <option value="">-- None --</option>
+          </select>
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Interaction Date</label>
+          <input type="date" name="interactionDate" class="input-control" required />
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-4);">
+          <label class="input-label">Interaction Summary (Internal)</label>
+          <input type="text" name="interactionSummary" class="input-control" required placeholder="e.g. Site visit for plot 201" />
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3);">
+          <button type="button" class="btn btn-secondary" onclick="closeRequestModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="reqSubmitBtn">Generate Link</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="reviews-feed" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-4);">
+    <div class="text-muted">Loading reviews...</div>
+  </div>
+</div>
+
+<script>
+  function renderStars(rating) {
+    if (!rating) return '';
+    let stars = '';
+    for(let i=1; i<=5; i++) {
+      stars += `<span style="color: ${i <= rating ? '#eab308' : '#e2e8f0'}; font-size: 18px;">★</span>`;
+    }
+    return stars;
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/reviews/stats');
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('stat-avg').innerHTML = `${data.stats.averageRating} <span style="font-size: 16px;">★</span>`;
+        document.getElementById('stat-total').innerText = data.stats.totalReviews;
+        document.getElementById('stat-dist').innerText = `${data.stats.fiveStarPercentage}%`;
+      }
+    } catch(e) {}
+  }
+
+  async function loadReviews() {
+    try {
+      const res = await fetch('/api/reviews');
+      const data = await res.json();
+      if (data.success) {
+        const feed = document.getElementById('reviews-feed');
+        if (data.reviews.length === 0) {
+          feed.innerHTML = '<div class="text-muted" style="grid-column: 1/-1;">No submitted reviews found.</div>';
+          return;
+        }
+
+        let html = '';
+        data.reviews.forEach(r => {
+          html += `
+            <div class="card" style="padding: var(--space-4); display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <h4 style="margin:0; font-size: 16px;">${r.customerName}</h4>
+                  <div class="text-muted" style="font-size: 12px;">${new Date(r.interactionDate).toLocaleDateString()}</div>
+                </div>
+                <div>${renderStars(r.overallRating)}</div>
+              </div>
+              
+              <div style="font-size: 14px; font-style: italic; color: var(--text-main);">
+                "${r.writtenReview || 'No written feedback provided.'}"
+              </div>
+              
+              <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span class="text-muted">Communication:</span>
+                  <span>${renderStars(r.communicationRating)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span class="text-muted">Property Experience:</span>
+                  <span>${renderStars(r.propertyExperienceRating)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        feed.innerHTML = html;
+      }
+    } catch(e) {}
+  }
+
+  async function showRequestModal() {
+    document.getElementById('requestForm').style.display = 'block';
+    document.getElementById('link-result').style.display = 'none';
+    document.getElementById('request-modal').style.display = 'flex';
+    
+    // Load projects for select
+    try {
+      const res = await fetch('/api/projects');
+      const data = await res.json();
+      if (data.success) {
+        let html = '<option value="">-- None --</option>';
+        data.projects.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
+        document.getElementById('project-select').innerHTML = html;
+      }
+    } catch(e) {}
+  }
+
+  function closeRequestModal() {
+    document.getElementById('request-modal').style.display = 'none';
+    document.getElementById('requestForm').reset();
+  }
+
+  function copyLink() {
+    const input = document.getElementById('generated-link');
+    input.select();
+    document.execCommand('copy');
+    alert('Link copied to clipboard!');
+  }
+
+  document.getElementById('requestForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('reqSubmitBtn');
+    btn.disabled = true;
+
+    try {
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
+      
+      const res = await fetch('/api/reviews/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        document.getElementById('requestForm').style.display = 'none';
+        document.getElementById('generated-link').value = data.link;
+        document.getElementById('link-result').style.display = 'block';
+      } else alert(data.error);
+    } catch(err) {}
+    btn.disabled = false;
+  });
+
+  loadStats();
+  loadReviews();
+</script>
+
+<%- include('../partials/footer') %>

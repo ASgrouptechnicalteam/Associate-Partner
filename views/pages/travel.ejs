@@ -1,0 +1,264 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Travel Allowance</h1>
+      <p class="text-muted">Manage your travel expenses and reimbursements.</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('new-travel-form').style.display='block'">+ New Request</button>
+  </div>
+
+  <!-- Stats row -->
+  <div class="responsive-grid-3">
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Approved</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center;"><i data-lucide="check-circle"></i></div>
+      </div>
+      <div>
+        <div id="stat-approved" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Paid</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center;"><i data-lucide="wallet"></i></div>
+      </div>
+      <div>
+        <div id="stat-paid" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Pending</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--warning); display: flex; align-items: center; justify-content: center;"><i data-lucide="clock"></i></div>
+      </div>
+      <div>
+        <div id="stat-pending" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Travel Form -->
+  <div id="new-travel-form" class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: none;">
+    <h3 style="margin-bottom: var(--space-4);">Submit Travel Expense</h3>
+    <form id="travelForm" enctype="multipart/form-data">
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        
+        <div class="input-group">
+          <label class="input-label">Travel Date</label>
+          <input type="date" name="travelDate" class="input-control" required />
+        </div>
+        
+        <div class="input-group">
+          <label class="input-label">Purpose</label>
+          <input type="text" name="purpose" class="input-control" required />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">From Location</label>
+          <input type="text" name="fromLocation" class="input-control" required />
+        </div>
+        
+        <div class="input-group">
+          <label class="input-label">To Location</label>
+          <input type="text" name="toLocation" class="input-control" required />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Distance (e.g. 15 km)</label>
+          <input type="text" name="distance" class="input-control" required />
+        </div>
+        
+        <div class="input-group">
+          <label class="input-label">Travel Mode</label>
+          <select name="travelMode" class="input-control" required>
+            <option value="TWO_WHEELER">Two Wheeler</option>
+            <option value="FOUR_WHEELER">Four Wheeler</option>
+            <option value="PUBLIC_TRANSPORT">Public Transport</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Amount Requested (₹)</label>
+          <input type="number" name="amountRequested" class="input-control" required min="0" />
+        </div>
+        
+        <div class="input-group">
+          <%- include('../partials/file-upload', {
+            name: 'supportingBill',
+            label: 'Supporting Bill / Receipt',
+            accept: '*/*',
+            required: false
+          }) %>
+        </div>
+
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">Additional Notes</label>
+          <textarea name="notes" class="input-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4);">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('new-travel-form').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Request</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-wrapper">
+      <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead style="background: var(--surface-muted);">
+          <tr style="text-align: left;">
+            <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Date</th>
+            <% if (user.role === 'MD' || user.role === 'AM') { %>
+              <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Associate</th>
+            <% } %>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Route</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Details</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Amount</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Status</th>
+            <% if (user.role === 'MD' || user.role === 'AM') { %>
+              <th style="padding: 16px var(--space-6); text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Action</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody id="travel-tbody">
+          <tr><td colspan="7" style="padding: 40px; text-align: center;" class="text-muted"><div class="skeleton" style="height: 40px; width: 100%; border-radius: 8px;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/travel/stats');
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('stat-approved').innerText = '₹' + data.stats.approved.toLocaleString();
+        document.getElementById('stat-paid').innerText = '₹' + data.stats.paid.toLocaleString();
+        document.getElementById('stat-pending').innerText = '₹' + data.stats.pending.toLocaleString();
+      }
+    } catch(e) {}
+  }
+
+  async function loadTravel() {
+    try {
+      const res = await fetch('/api/travel');
+      const data = await res.json();
+      if (data.success) renderTravel(data.requests);
+    } catch(e) {}
+  }
+
+  function renderTravel(requests) {
+    const tbody = document.getElementById('travel-tbody');
+    if (!requests || requests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding: 16px; text-align: center;" class="text-muted">No travel requests found.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    requests.forEach(r => {
+      let badge = '';
+      if (r.status === 'APPROVED') badge = '<span style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 12px;"></i> APPROVED</span>';
+      else if (r.status === 'REJECTED') badge = '<span style="background: var(--error-bg); color: var(--error); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="x-circle" style="width: 12px;"></i> REJECTED</span>';
+      else if (r.status === 'PAID') badge = '<span style="background: var(--primary-bg); color: var(--primary-dark); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-square" style="width: 12px;"></i> PAID</span>';
+      else badge = '<span style="background: var(--warning-bg); color: var(--warning); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="clock" style="width: 12px;"></i> PENDING</span>';
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 16px var(--space-6);">
+            <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${new Date(r.travelDate).toLocaleDateString()}</div>
+          </td>
+          <% if (user.role === 'MD' || user.role === 'AM') { %>
+            <td style="padding: 16px;">
+              <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${r.associate.name}</div>
+              <div class="text-muted" style="font-family: monospace; font-size: 12px; margin-top: 2px;">${r.associate.userId}</div>
+            </td>
+          <% } %>
+          <td style="padding: 16px;">
+            <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${r.fromLocation} <span style="color: var(--text-muted); margin: 0 4px;">→</span> ${r.toLocation}</div>
+            <div class="text-muted" style="font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+              <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="navigation" style="width: 12px;"></i> ${r.distance}</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="${r.travelMode === 'TWO_WHEELER' ? 'bike' : r.travelMode === 'FOUR_WHEELER' ? 'car' : 'bus'}" style="width: 12px;"></i> ${r.travelMode.replace('_', ' ')}</span>
+            </div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 500; color: var(--text-primary); font-size: 14px;">${r.purpose}</div>
+            ${r.supportingBill ? `<a href="${r.supportingBill}" target="_blank" style="font-size: 12px; font-weight: 600; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;"><i data-lucide="file-text" style="width: 12px;"></i> View Bill</a>` : ''}
+          </td>
+          <td style="padding: 16px;">
+            <div class="text-muted" style="font-size: 12px;">Requested: ₹${r.amountRequested}</div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 14px; margin-top: 2px;">Approved: ₹${r.amountApproved || '---'}</div>
+          </td>
+          <td style="padding: 16px;">${badge}</td>
+          <% if (user.role === 'MD' || user.role === 'AM') { %>
+            <td style="padding: 16px var(--space-6); text-align: right;">
+              <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              ${r.status === 'PENDING' ? `
+                <button onclick="updateStatus('${r.id}', 'APPROVED', prompt('Enter approved amount:', '${r.amountRequested}'))" class="btn btn-primary" style="height: 32px; padding: 0 12px; font-size: 12px;">Approve</button>
+                <button onclick="updateStatus('${r.id}', 'REJECTED')" class="btn btn-secondary" style="height: 32px; padding: 0 12px; font-size: 12px; color: var(--error); border-color: var(--error-bg); background: var(--error-bg);">Reject</button>
+              ` : ''}
+              ${r.status === 'APPROVED' ? `
+                <button onclick="updateStatus('${r.id}', 'PAID')" class="btn btn-primary" style="height: 32px; padding: 0 12px; font-size: 12px;">Mark Paid</button>
+              ` : ''}
+              </div>
+            </td>
+          <% } %>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  document.getElementById('travelForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      const formData = new FormData(e.target);
+      const res = await fetch('/api/travel', { method: 'POST', body: formData });
+      const data = await res.json();
+      
+      if (data.success) {
+        document.getElementById('new-travel-form').style.display = 'none';
+        e.target.reset();
+        loadStats();
+        loadTravel();
+      } else alert(data.error);
+    } catch(err) {}
+    
+    btn.disabled = false;
+    btn.textContent = 'Submit Request';
+  });
+
+  <% if (user.role === 'MD' || user.role === 'AM') { %>
+  async function updateStatus(id, status, amountApproved = null) {
+    if (status === 'APPROVED' && !amountApproved) return; // user cancelled prompt
+
+    try {
+      const res = await fetch(`/api/travel/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, amountApproved })
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadStats();
+        loadTravel();
+      }
+    } catch(e) {}
+  }
+  <% } %>
+
+  loadStats();
+  loadTravel();
+</script>
+
+<%- include('../partials/footer') %>

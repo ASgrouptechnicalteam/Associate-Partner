@@ -1,0 +1,227 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Carousel Management</h1>
+      <p class="text-muted">Manage dashboard carousel slides.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showForm()">+ Add New Slide</button>
+  </div>
+
+  <div id="new-promo-form" class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: none;">
+    <h3 style="margin-bottom: var(--space-4);" id="formTitle">Create Slide</h3>
+    <form id="promoForm" enctype="multipart/form-data">
+      <input type="hidden" id="slideId" name="id" />
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group">
+          <label class="input-label">Title</label>
+          <input type="text" name="title" id="titleInput" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Subtitle (Optional)</label>
+          <input type="text" name="subtitle" id="subtitleInput" class="input-control" />
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <%- include('../partials/file-upload', {
+            name: 'image',
+            label: 'Upload Slide Image',
+            accept: 'image/*',
+            required: false
+          }) %>
+          <div id="currentImagePreview" style="margin-top: 8px; display: none;">
+            <img src="" style="max-height: 100px; border-radius: 8px;" id="previewImg" />
+          </div>
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">Description</label>
+          <textarea name="description" id="descInput" class="input-control" rows="2"></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">CTA Text (Button)</label>
+          <input type="text" name="ctaText" id="ctaTextInput" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">CTA Link URL</label>
+          <input type="text" name="ctaUrl" id="ctaUrlInput" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">
+            <input type="checkbox" name="isActive" id="isActiveInput" value="true" checked /> Is Active
+          </label>
+        </div>
+        <div class="input-group">
+          <label class="input-label">
+            <input type="checkbox" name="isPublished" id="isPublishedInput" value="true" /> Publish Immediately
+          </label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4);">
+        <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Slide</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="padding: var(--space-4);">
+    <div id="promos-container"><p class="text-muted">Loading slides...</p></div>
+  </div>
+</div>
+
+<script>
+  let slidesData = [];
+
+  function showForm(slide = null) {
+    document.getElementById('new-promo-form').style.display = 'block';
+    const form = document.getElementById('promoForm');
+    form.reset();
+    document.getElementById('currentImagePreview').style.display = 'none';
+
+    if (slide) {
+      document.getElementById('formTitle').innerText = 'Edit Slide';
+      document.getElementById('slideId').value = slide.id;
+      document.getElementById('titleInput').value = slide.title || '';
+      document.getElementById('subtitleInput').value = slide.subtitle || '';
+      document.getElementById('descInput').value = slide.description || '';
+      document.getElementById('ctaTextInput').value = slide.ctaText || '';
+      document.getElementById('ctaUrlInput').value = slide.ctaUrl || '';
+      document.getElementById('isActiveInput').checked = slide.isActive;
+      document.getElementById('isPublishedInput').checked = slide.isPublished;
+      if (slide.image) {
+        document.getElementById('currentImagePreview').style.display = 'block';
+        document.getElementById('previewImg').src = slide.image;
+      }
+    } else {
+      document.getElementById('formTitle').innerText = 'Create Slide';
+      document.getElementById('slideId').value = '';
+      document.getElementById('isActiveInput').checked = true;
+      document.getElementById('isPublishedInput').checked = false;
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function hideForm() {
+    document.getElementById('new-promo-form').style.display = 'none';
+  }
+
+  document.getElementById('promoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    
+    try {
+      const formData = new FormData(e.target);
+      if (!document.getElementById('isActiveInput').checked) formData.append('isActive', 'false');
+      if (!document.getElementById('isPublishedInput').checked) formData.append('isPublished', 'false');
+
+      const id = document.getElementById('slideId').value;
+      const url = id ? `/api/dashboard/carousel/${id}` : '/api/dashboard/carousel';
+      const method = id ? 'PUT' : 'POST';
+
+      const res = await fetch(url, { method, body: formData });
+      const data = await res.json();
+      if (data.success) {
+        hideForm();
+        fetchPromos();
+      } else alert(data.error);
+    } catch(err) {
+      alert('Error saving slide');
+    }
+    btn.disabled = false;
+  });
+
+  async function fetchPromos() {
+    try {
+      const res = await fetch('/api/dashboard/carousel');
+      const data = await res.json();
+      if (data.success) {
+        slidesData = data.data;
+        renderPromos(slidesData);
+      }
+    } catch(e) {}
+  }
+
+  async function moveSlide(index, direction) {
+    if (direction === 'up' && index > 0) {
+      const temp = slidesData[index];
+      slidesData[index] = slidesData[index - 1];
+      slidesData[index - 1] = temp;
+    } else if (direction === 'down' && index < slidesData.length - 1) {
+      const temp = slidesData[index];
+      slidesData[index] = slidesData[index + 1];
+      slidesData[index + 1] = temp;
+    } else {
+      return;
+    }
+    
+    const updatePayload = slidesData.map((item, idx) => ({ id: item.id, displayOrder: idx }));
+    renderPromos(slidesData);
+    
+    try {
+      await fetch('/api/dashboard/carousel/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: updatePayload })
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function renderPromos(promos) {
+    if (!promos || promos.length === 0) {
+      document.getElementById('promos-container').innerHTML = '<p class="text-muted">No slides found.</p>';
+      return;
+    }
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+    
+    promos.forEach((p, idx) => {
+      html += `
+        <div style="display: flex; gap: 16px; align-items: stretch; border: 1px solid var(--border-light); padding: 16px; border-radius: 8px; background: rgba(255,255,255,0.02);">
+          <div style="flex: 0 0 150px; background: #000; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
+            ${p.image ? '<img src="' + p.image + '" style="width: 100%; height: 100px; object-fit: cover;" />' : '<span style="color:#666;">No Image</span>'}
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <h4 style="margin: 0 0 4px 0; font-size: 16px;">${p.title || 'Untitled'}</h4>
+            <p style="margin: 0 0 8px 0; font-size: 13px; color: var(--text-muted);">${p.description || 'No description'}</p>
+            <div style="display: flex; gap: 16px; font-size: 13px;">
+              <span><strong style="color: ${p.isActive ? 'var(--success)' : 'var(--error)'}">${p.isActive ? 'Active' : 'Inactive'}</strong></span>
+              <span><strong style="color: ${p.isPublished ? 'var(--primary)' : 'var(--text-muted)'}">${p.isPublished ? 'Published' : 'Unpublished'}</strong></span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;">
+            <div style="display: flex; gap: 8px;">
+              <button onclick="moveSlide(${idx}, 'up')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" ${idx === 0 ? 'disabled' : ''}>▲</button>
+              <button onclick="moveSlide(${idx}, 'down')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" ${idx === promos.length - 1 ? 'disabled' : ''}>▼</button>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: auto;">
+              <button onclick='editSlide(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">Edit</button>
+              <button onclick="deletePromo('${p.id}')" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; color: var(--error);">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+    document.getElementById('promos-container').innerHTML = html;
+  }
+
+  function editSlide(slide) {
+    showForm(slide);
+  }
+
+  async function deletePromo(id) {
+    if (!confirm('Delete this slide?')) return;
+    try {
+      const res = await fetch('/api/dashboard/carousel/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchPromos();
+    } catch(e) {}
+  }
+
+  fetchPromos();
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,28 @@
+<% 
+  // Determine styles based on variant
+  let maxWidth = '160px';
+  let marginBottom = '0';
+  let displayClass = '';
+  let logoHeight = 'auto';
+  
+  if (typeof variant !== 'undefined') {
+    if (variant === 'login') {
+      maxWidth = '200px';
+      marginBottom = 'var(--space-4)';
+    } else if (variant === 'sidebar') {
+      maxWidth = '130px';
+      marginBottom = '0';
+    } else if (variant === 'mobile-header') {
+      maxWidth = '130px';
+      logoHeight = '32px';
+      displayClass = 'mobile-only';
+    }
+  }
+%>
+<img 
+  src="/assets/branding/sonthillu-logo.svg" 
+  alt="Sonthillu Constructions" 
+  class="brand-logo <%= typeof variant !== 'undefined' ? 'logo-' + variant : '' %> <%= displayClass %>" 
+  <%- 'style="max-width: ' + maxWidth + '; height: ' + logoHeight + '; object-fit: contain; margin-bottom: ' + marginBottom + '; flex-shrink: 0;"' %> 
+  onerror="this.style.display='none'" 
+/>

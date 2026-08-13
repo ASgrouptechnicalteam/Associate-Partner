@@ -1,0 +1,68 @@
+<% 
+  const inputId = typeof id !== 'undefined' ? id : name;
+  const isMultiple = typeof multiple !== 'undefined' && multiple ? 'multiple' : '';
+  const isRequired = typeof required !== 'undefined' && required;
+  const reqAttr = isRequired ? 'required' : '';
+  const acceptAttr = typeof accept !== 'undefined' ? accept : '*/*';
+  const maxSize = typeof maxSizeMB !== 'undefined' ? maxSizeMB : 10;
+  const extraClass = typeof cssClass !== 'undefined' ? cssClass : '';
+  
+  // Format the accepted types for display
+  let formatText = '';
+  if (acceptAttr.includes('image/*') && acceptAttr.includes('.pdf')) {
+    formatText = 'PDF / JPG / PNG';
+  } else if (acceptAttr.includes('image/*')) {
+    formatText = 'JPG / PNG / WEBP';
+  } else if (acceptAttr.includes('.pdf')) {
+    formatText = 'PDF only';
+  } else if (acceptAttr.includes('video/*') || acceptAttr.includes('.mp4')) {
+    formatText = 'MP4 / WEBM';
+  } else {
+    formatText = 'Any file type';
+  }
+%>
+
+<div class="custom-upload-component <%= extraClass %>" data-max-size="<%= maxSize %>" data-multiple="<%= isMultiple ? 'true' : 'false' %>">
+  <label class="input-label" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span><%= label %> <%- isRequired ? '<span style="color: var(--error);">*</span>' : '' %></span>
+    <% if (isRequired) { %>
+      <span class="caption" style="color: var(--error);">Required</span>
+    <% } else { %>
+      <span class="caption">Optional</span>
+    <% } %>
+  </label>
+  
+  <!-- The visually hidden native input -->
+  <input 
+    type="file" 
+    id="<%= inputId %>" 
+    name="<%= name %>" 
+    class="visually-hidden-file-input" 
+    accept="<%= acceptAttr %>" 
+    <%= isMultiple %> 
+    <%= reqAttr %>
+    tabindex="-1"
+  />
+
+  <!-- The Dropzone / Upload Area -->
+  <div class="custom-upload-zone" tabindex="0" role="button" aria-label="Upload <%= label %>" id="dropzone-<%= inputId %>">
+    <div class="upload-zone-content">
+      <i data-lucide="upload-cloud" class="upload-icon"></i>
+      <div class="upload-title desktop-only">Drag & drop your file<%= isMultiple ? 's' : '' %> here</div>
+      <div class="upload-or desktop-only">or</div>
+      <button type="button" class="btn btn-secondary upload-btn">Choose File<%= isMultiple ? 's' : '' %></button>
+      <div class="upload-subtitle mobile-only">Tap to choose file<%= isMultiple ? 's' : '' %></div>
+      <div class="upload-hints">
+        <%= formatText %> &bull; Maximum <%= maxSize %> MB
+      </div>
+    </div>
+  </div>
+
+  <!-- The Preview Area -->
+  <div class="custom-upload-preview-container" id="preview-<%= inputId %>" style="display: none;">
+    <!-- Preview cards will be injected here via JS -->
+  </div>
+  
+  <!-- Error Message Area -->
+  <div class="custom-upload-error" id="error-<%= inputId %>" style="display: none;"></div>
+</div>

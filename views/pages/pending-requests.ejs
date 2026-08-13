@@ -1,0 +1,141 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="margin-bottom: var(--space-6);">
+    <h1 style="font-size: 24px; font-weight: 700;">Pending Requests</h1>
+    <p class="text-muted">Review and manage approval requests.</p>
+  </div>
+
+  <div class="card" style="padding: var(--space-4);">
+    <div id="requests-container">
+      <p class="text-muted">Loading requests...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function fetchRequests() {
+    try {
+      const res = await fetch('/api/approvals');
+      const data = await res.json();
+      if (data.success) {
+        renderRequests(data.requests);
+      }
+    } catch (e) {
+      document.getElementById('requests-container').innerHTML = '<p class="text-error">Failed to load requests.</p>';
+    }
+  }
+
+  function renderRequests(requests) {
+    if (!requests || requests.length === 0) {
+      document.getElementById('requests-container').innerHTML = `
+        <div style="text-align: center; padding: 60px;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <i data-lucide="check-circle" style="width: 32px; height: 32px;"></i>
+          </div>
+          <h3 style="margin-bottom: 8px;">All caught up!</h3>
+          <p class="text-muted">There are no pending requests requiring your approval.</p>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '<div class="table-wrapper"><table class="data-table" style="width: 100%; border-collapse: collapse;">';
+    html += `
+      <thead style="background: var(--surface-muted);">
+        <tr style="border-bottom: 1px solid var(--border-light); text-align: left;">
+          <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Type</th>
+          <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Target User</th>
+          <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Requested By</th>
+          <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Date</th>
+          <th style="padding: 16px var(--space-6); text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    requests.forEach(req => {
+      const targetName = req.targetUser ? req.targetUser.name : 'Unknown';
+      const targetCode = req.targetUser ? req.targetUser.userId : '';
+      const reqByName = req.requestedBy ? req.requestedBy.name : 'System';
+      const date = new Date(req.createdAt).toLocaleDateString();
+      
+      let typeIcon = 'file-text';
+      if (req.type.includes('USER')) typeIcon = 'user';
+      if (req.type.includes('PROJECT')) typeIcon = 'building';
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 16px var(--space-6);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center;"><i data-lucide="${typeIcon}" style="width: 16px; height: 16px;"></i></div>
+              <span style="font-weight: 600; color: var(--text-primary); font-size: 13px;">${req.type.replace(/_/g, ' ')}</span>
+            </div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${targetName}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${targetCode}</div>
+          </td>
+          <td style="padding: 16px;">
+            <span style="font-weight: 500; color: var(--text-primary); font-size: 13px;">${reqByName}</span>
+          </td>
+          <td style="padding: 16px;">
+            <span style="color: var(--text-muted); font-size: 13px;">${date}</span>
+          </td>
+          <td style="padding: 16px var(--space-6); text-align: right;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button onclick="approveRequest('${req.id}')" class="btn btn-primary" style="height: 32px; padding: 0 12px; font-size: 12px;">Approve</button>
+              <button onclick="rejectRequest('${req.id}')" class="btn btn-secondary" style="height: 32px; padding: 0 12px; font-size: 12px; color: var(--error); border-color: var(--error-bg); background: var(--error-bg);">Reject</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById('requests-container').innerHTML = html;
+    lucide.createIcons();
+  }
+
+  async function approveRequest(id) {
+    if (!confirm('Are you sure you want to approve this request?')) return;
+    try {
+      const res = await fetch(`/api/approvals/${id}/approve`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert('Approved successfully.');
+        fetchRequests();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch(e) {
+      alert('Network error.');
+    }
+  }
+
+  async function rejectRequest(id) {
+    const reason = prompt('Please enter a reason for rejection:');
+    if (reason === null) return;
+    try {
+      const res = await fetch(`/api/approvals/${id}/reject`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Rejected successfully.');
+        fetchRequests();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch(e) {
+      alert('Network error.');
+    }
+  }
+
+  fetchRequests();
+</script>
+
+<%- include('../partials/footer') %>

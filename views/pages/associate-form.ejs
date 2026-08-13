@@ -1,0 +1,192 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="margin-bottom: var(--space-6);">
+    <h1 style="font-size: 24px; font-weight: 700;">Add New Associate</h1>
+    <p class="text-muted">Fill out the complete profile to onboard a new Associate.</p>
+  </div>
+
+  <form id="associateForm" enctype="multipart/form-data" class="card" style="padding: var(--space-6);">
+    
+    <!-- Personal Information -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">1. Personal Information</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Full Name</label>
+        <input type="text" name="name" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <%- include('../partials/file-upload', {
+          name: 'profilePhoto',
+          label: 'Profile Photo',
+          accept: 'image/*',
+          required: false
+        }) %>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Primary Phone</label>
+        <input type="text" name="primaryPhone" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">WhatsApp Number</label>
+        <input type="text" name="whatsappNumber" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <input type="email" name="email" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Blood Group</label>
+        <input type="text" name="bloodGroup" class="input-control" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Secondary Contact (Optional)</label>
+        <input type="text" name="secondaryPhone" class="input-control" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Emergency Contact (Optional)</label>
+        <input type="text" name="emergencyContact" class="input-control" />
+      </div>
+    </div>
+
+    <!-- Address -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">2. Address</h3>
+    <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-6);">
+      <div class="input-group">
+        <label class="input-label">Current Address</label>
+        <textarea name="currentAddress" class="input-control" rows="3" required></textarea>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Permanent Address</label>
+        <textarea name="permanentAddress" class="input-control" rows="3" required></textarea>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">2. KYC Documents</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Aadhaar Number</label>
+        <input type="text" name="aadhaar" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <%- include('../partials/file-upload', {
+          name: 'aadhaarFile',
+          label: 'Upload Aadhaar',
+          accept: '.pdf,image/*',
+          required: true
+        }) %>
+      </div>
+      <div class="input-group">
+        <label class="input-label">PAN Number</label>
+        <input type="text" name="pan" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <%- include('../partials/file-upload', {
+          name: 'panFile',
+          label: 'Upload PAN',
+          accept: '.pdf,image/*',
+          required: true
+        }) %>
+      </div>
+    </div>
+
+    <!-- Banking -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">4. Banking Details</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Account Holder Name</label>
+        <input type="text" name="accountHolder" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Bank Name</label>
+        <input type="text" name="bank" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Account Number</label>
+        <input type="text" name="accountNo" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">IFSC Code</label>
+        <input type="text" name="ifsc" class="input-control" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Branch</label>
+        <input type="text" name="branch" class="input-control" required />
+      </div>
+    </div>
+
+    <!-- Employment -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">5. Employment History</h3>
+    <div class="responsive-grid-2">
+      <div class="input-group">
+        <label class="input-label">Employment Status</label>
+        <select name="employmentStatus" class="input-control">
+          <option value="EMPLOYED">Employed</option>
+          <option value="SELF_EMPLOYED">Self Employed</option>
+          <option value="UNEMPLOYED">Unemployed</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Company Name</label>
+        <input type="text" name="company" class="input-control" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Designation</label>
+        <input type="text" name="designation" class="input-control" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Years of Experience</label>
+        <input type="text" name="experience" class="input-control" />
+      </div>
+    </div>
+
+    <!-- Team & Commission -->
+    <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">6. Portal & Team Configuration</h3>
+    <div style="display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-6);">
+      <div class="input-group">
+        <label class="input-label">Parent Associate ID (Optional, for downlines)</label>
+        <input type="text" name="parentAssociateId" class="input-control" placeholder="Leave blank if top-level" />
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+      <a href="/team" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" id="submitBtn">Submit for MD Approval</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.getElementById('associateForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    const formData = new FormData(e.target);
+
+    try {
+      const res = await fetch('/api/associates', {
+        method: 'POST',
+        body: formData // multer handles this
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert('Associate created successfully with Code: ' + data.associateCode + '.\nIt is now pending MD Approval.');
+        window.location.href = '/team';
+      } else {
+        alert('Error: ' + data.error);
+        btn.textContent = 'Submit for MD Approval';
+        btn.disabled = false;
+      }
+    } catch (err) {
+      alert('Network error during submission.');
+      btn.textContent = 'Submit for MD Approval';
+      btn.disabled = false;
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

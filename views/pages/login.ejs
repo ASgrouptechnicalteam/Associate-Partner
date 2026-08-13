@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Sonthillu Constructions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/globals.css?v=1.1">
+    <link rel="stylesheet" href="/css/components.css?v=1.1">
+    <style>
+        /* Base page setup */
+        body.login-page {
+            margin: 0;
+            padding: 0;
+            background: #F7F8FA;
+            min-height: 100vh;
+            display: flex;
+            font-family: 'Inter', sans-serif;
+            overflow-x: clip; /* As requested, clip horizontal overflow but don't force vertical hidden if short */
+        }
+
+        .login-layout {
+            display: grid;
+            grid-template-columns: 56fr 44fr;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* --- HERO PANEL (LEFT) --- */
+        .login-hero {
+            background: 
+                radial-gradient(circle at 15% 15%, rgba(40, 93, 150, 0.35), transparent 35%),
+                linear-gradient(135deg, #061426 0%, #0A2340 50%, #071A33 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Decorative Background Elements */
+        .hero-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.06;
+        }
+        
+        .hero-glow {
+            position: absolute;
+            bottom: -20%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-internal-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 56px 64px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* Logo Configuration */
+        .hero-logo-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .logo-panel {
+            background: #FFFFFF;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 24px;
+            flex-shrink: 0;
+        }
+
+        .logo-panel img {
+            width: 115px;
+            height: auto;
+            display: block;
+            background: transparent;
+        }
+
+        /* Hero Content */
+        .hero-content {
+            margin-top: auto;
+            margin-bottom: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-heading {
+            font-size: clamp(48px, 5vw, 64px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -1.5px;
+            color: #F8FAFC;
+            margin: 0 0 20px 0;
+        }
+
+        .hero-description {
+            font-size: 18px;
+            line-height: 1.6;
+            font-weight: 400;
+            color: rgba(226, 232, 240, 0.78);
+            max-width: 540px;
+            margin: 0;
+        }
+
+        /* --- LOGIN PANEL (RIGHT) --- */
+        .login-panel {
+            background: #F7F8FA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .login-content {
+            width: min(100% - 64px, 440px);
+            margin-inline: auto;
+            box-sizing: border-box;
+        }
+
+        .mobile-logo-wrapper {
+            display: none;
+            margin-bottom: 32px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .login-heading {
+            font-size: 40px;
+            font-weight: 750;
+            line-height: 1.1;
+            color: #071A33;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .login-subtitle {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #64748B;
+            margin: 0 0 36px 0;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .login-input {
+            width: 100%;
+            height: 54px;
+            background: #FFFFFF;
+            border: 1px solid #D9E0E8;
+            border-radius: 13px;
+            padding: 0 16px 0 44px;
+            font-size: 15px;
+            color: #0f172a;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .login-input::placeholder {
+            color: #cbd5e1;
+        }
+
+        .login-input:focus {
+            border-color: #C8A43A;
+            box-shadow: 0 0 0 3px rgba(200, 164, 58, 0.12);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: #475569;
+        }
+
+        /* Sign In Button */
+        .btn-sign-in {
+            width: 100%;
+            height: 56px;
+            background: #D4AF37;
+            color: #071A33;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 32px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sign-in:hover {
+            background: #C8A43A; /* Slightly darker gold */
+        }
+
+        .btn-sign-in:active {
+            transform: scale(0.99);
+        }
+
+        .btn-sign-in:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(7, 26, 51, 0.3);
+            border-radius: 50%;
+            border-top-color: #071A33;
+            animation: spin 1s linear infinite;
+        }
+
+        .btn-sign-in.loading .btn-text,
+        .btn-sign-in.loading .btn-icon {
+            display: none;
+        }
+
+        .btn-sign-in.loading .btn-spinner {
+            display: block;
+        }
+
+        /* Error state */
+        .error-banner {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .error-banner svg {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        
+        /* Tablets & Smaller Desktops */
+        @media (max-width: 1199px) {
+            .hero-internal-container {
+                padding: 48px;
+            }
+            .hero-heading {
+                font-size: 42px;
+            }
+            .login-content {
+                width: min(100% - 48px, 420px);
+            }
+        }
+
+        /* Mobile Layout */
+        @media (max-width: 767px) {
+            .login-layout {
+                display: block; /* Remove grid */
+            }
+            
+            .login-hero {
+                display: none; /* Hide desktop hero completely */
+            }
+            
+            .login-panel {
+                width: 100%;
+                min-height: 100vh;
+                align-items: flex-start; /* Move to top on mobile */
+                padding: 24px 0;
+            }
+
+            .login-content {
+                width: min(100% - 48px, 100%); /* 24px padding on each side */
+                margin: 0 auto;
+            }
+
+            .mobile-logo-wrapper {
+                display: flex;
+            }
+
+            .logo-panel {
+                padding: 14px 20px;
+            }
+
+            .logo-panel img {
+                width: 90px;
+            }
+
+            .login-heading {
+                font-size: 32px;
+            }
+
+            .login-subtitle {
+                font-size: 15px;
+                margin-bottom: 32px;
+            }
+            
+            .login-input {
+                height: 52px;
+            }
+            
+            .btn-sign-in {
+                height: 54px;
+            }
+        }
+    </style>
+</head>
+<body class="login-page">
+    
+    <div class="login-layout">
+        
+        <!-- HERO PANEL (Desktop) -->
+        <div class="login-hero">
+            <div class="hero-decoration"></div>
+            <div class="hero-glow"></div>
+            
+            <div class="hero-internal-container">
+                <div class="hero-content">
+                    <div class="hero-logo-wrapper">
+                        <div class="logo-panel">
+                            <img src="/assets/branding/sonthillu-logo.svg" alt="Sonthillu Constructions">
+                        </div>
+                    </div>
+                    
+                    <h1 class="hero-heading">Grow Together.<br>Build Together.</h1>
+                    <p class="hero-description">Your partner workspace for managing projects, bookings, commissions and opportunities.</p>
+                    
+
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN PANEL -->
+        <div class="login-panel">
+            <div class="login-content">
+                
+                <div class="mobile-logo-wrapper">
+                    <div class="logo-panel">
+                        <img src="/assets/branding/sonthillu-logo.svg" alt="Sonthillu Constructions">
+                    </div>
+                </div>
+
+                <h2 class="login-heading">Welcome back</h2>
+                <p class="login-subtitle">Sign in to continue to your partner workspace.</p>
+
+                <form id="loginForm">
+                    <!-- Error Banner -->
+                    <div id="errorMsg" class="error-banner">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <div style="display: flex; flex-direction: column;">
+                            <strong style="margin-bottom: 2px;">Unable to sign in</strong>
+                            <span id="errorText">Please check your User ID and password.</span>
+                        </div>
+                    </div>
+
+                    <!-- User ID -->
+                    <div class="form-group">
+                        <label class="input-label" for="userId">User ID</label>
+                        <div class="input-wrapper">
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
+                            <input type="text" id="userId" class="login-input" placeholder="Enter your User ID" autocomplete="username" required />
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group" style="margin-bottom: 32px;">
+                        <label class="input-label" for="password">Password</label>
+                        <div class="input-wrapper">
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            </div>
+                            <input type="password" id="password" class="login-input" placeholder="Enter your password" autocomplete="current-password" required />
+                            <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password visibility">
+                                <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <svg id="eyeOffIcon" style="display: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn-sign-in" id="loginBtn">
+                        <span class="btn-text">Sign In</span>
+                        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <div class="btn-spinner"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password Visibility Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                eyeIcon.style.display = 'none';
+                eyeOffIcon.style.display = 'block';
+            } else {
+                eyeIcon.style.display = 'block';
+                eyeOffIcon.style.display = 'none';
+            }
+            
+            // Maintain focus on input after toggle
+            passwordInput.focus();
+        });
+
+        // Authentication Logic (Unchanged)
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errorBanner = document.getElementById('errorMsg');
+            const errorText = document.getElementById('errorText');
+            const userId = document.getElementById('userId').value;
+            const password = passwordInput.value;
+            
+            // Set loading state
+            btn.classList.add('loading');
+            btn.disabled = true;
+            errorBanner.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, password })
+                });
+                
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                // Login successful - handle redirect
+                if (data.isFirstLogin) {
+                    window.location.href = '/change-password';
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                // Show error state
+                errorText.textContent = err.message;
+                errorBanner.style.display = 'flex';
+                
+                // Reset button state
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

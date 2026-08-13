@@ -1,0 +1,278 @@
+<%- include('../partials/head') %>
+
+<style>
+  .project-hero {
+    height: 350px;
+    background-color: var(--surface-muted);
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--radius-xl);
+    position: relative;
+    margin-bottom: var(--space-6);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .project-hero-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: var(--space-8);
+    background: linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.4) 60%, transparent 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .tabs-nav {
+    display: flex;
+    gap: var(--space-8);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--space-6);
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: var(--space-3) 0;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active {
+    color: var(--primary-dark);
+    border-bottom-color: var(--primary);
+  }
+  .tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .tab-pane.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div id="project-view-container">
+  <div class="skeleton" style="height: 350px; border-radius: var(--radius-xl); margin-bottom: var(--space-6);"></div>
+  <div class="skeleton" style="height: 40px; width: 300px; margin-bottom: var(--space-6);"></div>
+  <div class="skeleton" style="height: 200px; border-radius: var(--radius-lg);"></div>
+</div>
+
+<script>
+  const projectId = "<%= projectId %>";
+
+  async function fetchProject() {
+    try {
+      const res = await fetch(`/api/projects/${projectId}`);
+      const data = await res.json();
+      if (data.success) {
+        renderProject(data.project);
+      }
+    } catch(e) {
+      document.getElementById('project-view-container').innerHTML = '<p class="text-error">Error loading project.</p>';
+    }
+  }
+
+  function renderProject(p) {
+    let coverImage = '/default-project.jpg';
+    let gHtml = '';
+    if (p.gallery) {
+      try {
+        const arr = JSON.parse(p.gallery);
+        if (arr.length > 0) coverImage = arr[0];
+        arr.forEach(img => {
+          gHtml += `<div style="min-width: 250px; height: 160px; background-image: url('${img}'); background-size: cover; background-position: center; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);"></div>`;
+        });
+      } catch(e) {}
+    }
+
+    const badge = p.status === 'APPROVED' ? 
+      '<div style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px);"><i data-lucide="check-circle" style="width: 16px;"></i> ACTIVE</div>' :
+      '<div style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 6px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; backdrop-filter: blur(4px);">PENDING</div>';
+
+    let resources = '';
+    if (p.brochureUrl) resources += `<a href="${p.brochureUrl}" target="_blank" class="btn btn-secondary"><i data-lucide="download"></i> Download Brochure</a>`;
+    if (p.layoutUrl) resources += `<a href="${p.layoutUrl}" target="_blank" class="btn btn-secondary"><i data-lucide="map"></i> View Master Layout</a>`;
+    if (!resources) resources = '<p class="text-muted">No resources uploaded.</p>';
+
+    const availableUnits = p.units ? p.units.filter(u => u.status === 'AVAILABLE').length : 0;
+
+    let adminHtml = '';
+    <% if (user.role === 'AM' || user.role === 'MD') { %>
+      adminHtml = `
+        <div class="card" style="margin-top: var(--space-6); background: var(--surface-muted);">
+          <h3 style="margin-bottom: var(--space-4);">Admin Controls</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+            <div>
+              <label class="input-label">Assign to Associate</label>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <input type="text" id="assign-userId" placeholder="User ID (e.g. AP-0001)" class="input-control" style="flex: 1; background: white;" />
+                <button onclick="assignProject()" class="btn btn-primary">Assign</button>
+              </div>
+            </div>
+            <div>
+              <label class="input-label">Add Inventory Unit</label>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <button onclick="addUnit()" class="btn btn-secondary" style="background: white;">+ Add Unit via Prompt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    <% } %>
+
+    document.getElementById('project-view-container').innerHTML = `
+      <div class="project-hero" style="background-image: url('${coverImage}');">
+        <div class="project-hero-overlay">
+          <div>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+              <span style="background: var(--primary); color: var(--primary-dark); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase;">${p.type || 'Residential'}</span>
+              ${badge}
+            </div>
+            <h1 style="font-size: 40px; font-weight: 700; margin: 0; line-height: 1.1;">${p.name}</h1>
+            <p style="font-size: 18px; color: rgba(255,255,255,0.8); margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="map-pin"></i> ${p.location}
+            </p>
+          </div>
+          <div style="text-align: right; background: rgba(0,0,0,0.4); padding: var(--space-4) var(--space-6); border-radius: var(--radius-lg); backdrop-filter: blur(8px);">
+            <div style="font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 4px;">Available Inventory</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--success);">${availableUnits} <span style="font-size: 16px; color: white;">Units</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+        <button class="tab-btn" onclick="switchTab('inventory')">Inventory & Pricing</button>
+        <button class="tab-btn" onclick="switchTab('gallery')">Gallery</button>
+      </div>
+
+      <div id="tab-overview" class="tab-pane active">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+          <div class="card">
+            <h3 style="margin-bottom: var(--space-4);">About the Project</h3>
+            <p class="text-muted" style="line-height: 1.7; font-size: 15px;">${p.description || 'No detailed description provided yet.'}</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: var(--space-4);">Resources</h3>
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+              ${resources}
+            </div>
+          </div>
+        </div>
+        ${adminHtml}
+      </div>
+
+      <div id="tab-inventory" class="tab-pane">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+            <h3>Available Units</h3>
+          </div>
+          <div id="inventory-container"></div>
+        </div>
+      </div>
+
+      <div id="tab-gallery" class="tab-pane">
+        <div class="card">
+          <h3 style="margin-bottom: var(--space-4);">Project Media</h3>
+          <div style="display: flex; gap: var(--space-4); overflow-x: auto; padding-bottom: var(--space-4);">
+            ${gHtml || '<p class="text-muted">No additional images available.</p>'}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    renderInventory(p.units);
+    lucide.createIcons();
+  }
+
+  window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    
+    event.currentTarget.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+  };
+
+  function renderInventory(units) {
+    const container = document.getElementById('inventory-container');
+    if (!container) return;
+    
+    if (!units || units.length === 0) {
+      container.innerHTML = '<p class="text-muted">No inventory units added yet.</p>';
+      return;
+    }
+    
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4);">';
+    units.forEach(u => {
+      let statusBg = 'var(--success-bg)';
+      let statusCol = 'var(--success)';
+      let icon = 'check-circle';
+      if (u.status === 'BOOKED') { statusBg = 'var(--error-bg)'; statusCol = 'var(--error)'; icon = 'lock'; }
+      if (u.status === 'RESERVED') { statusBg = 'var(--warning-bg)'; statusCol = 'var(--warning)'; icon = 'clock'; }
+
+      html += `
+        <div style="border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; background: var(--surface);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-4);">
+            <div style="font-weight: 700; font-size: 18px; color: var(--text-primary);">${u.identifier}</div>
+            <div style="background: ${statusBg}; color: ${statusCol}; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; letter-spacing: 0.05em;"><i data-lucide="${icon}" style="width: 12px; height: 12px;"></i> ${u.status}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: var(--space-3); margin-top: auto;">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Size</span>
+              <span style="font-size: 14px; font-weight: 500;">${u.size || 'N/A'}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: right;">
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Price</span>
+              <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">${u.price || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  <% if (user.role === 'AM' || user.role === 'MD') { %>
+  window.addUnit = async function() {
+    const id = prompt('Enter Unit Identifier (e.g. Plot 101):');
+    if (!id) return;
+    const size = prompt('Enter Size (e.g. 150 sqyd):');
+    const price = prompt('Enter Price:');
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/units`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: id, size, price })
+      });
+      const data = await res.json();
+      if (data.success) fetchProject();
+      else alert(data.error);
+    } catch(e) {}
+  };
+
+  window.assignProject = async function() {
+    const userId = document.getElementById('assign-userId').value;
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Assigned successfully');
+        document.getElementById('assign-userId').value = '';
+      } else alert(data.error);
+    } catch(e) {}
+  };
+  <% } %>
+
+  fetchProject();
+</script>
+
+<%- include('../partials/footer') %>

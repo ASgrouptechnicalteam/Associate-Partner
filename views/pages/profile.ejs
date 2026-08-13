@@ -1,0 +1,330 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-2);">My Profile</h1>
+      <p class="text-muted">Manage your identity, settings, and install the app.</p>
+    </div>
+    <a href="/profile/edit" class="btn btn-primary">Edit Profile</a>
+  </div>
+
+  <div class="profile-grid" style="display: grid; grid-template-columns: 1fr 380px; gap: var(--space-6);">
+    <!-- Left Column: Profile Data -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+      
+      <!-- Identity Card -->
+      <div class="card" style="padding: var(--space-6); display: flex; gap: var(--space-6); align-items: center; flex-wrap: wrap; background: linear-gradient(to right, var(--surface), var(--surface-muted)); border: 1px solid var(--border);">
+        <div style="width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-gold) 0%, #d97706 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; flex-shrink: 0; box-shadow: var(--shadow-md);">
+          <%= user.name.substring(0, 2).toUpperCase() %>
+        </div>
+        <div style="min-width: 0; flex: 1;">
+          <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); word-break: break-word; letter-spacing: -0.02em;"><%= user.name %></h2>
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <div style="background: var(--primary-bg); color: var(--primary-dark); padding: 4px 12px; border-radius: var(--radius-pill); font-weight: 700; font-size: 13px; letter-spacing: 0.05em;"><%= user.role %></div>
+            <div style="font-family: monospace; color: var(--text-muted); font-size: 14px; font-weight: 600; background: var(--surface); padding: 4px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-light);">ID: <%= user.userId %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Badges -->
+      <div class="card" style="padding: var(--space-6);">
+        <h3 style="margin-bottom: var(--space-5); font-size: 18px;">Verification Status</h3>
+        <div id="verification-container" style="display: flex; gap: var(--space-4); flex-wrap: wrap;">
+          <div class="skeleton" style="height: 32px; width: 120px; border-radius: var(--radius-pill);"></div>
+          <div class="skeleton" style="height: 32px; width: 120px; border-radius: var(--radius-pill);"></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+        <!-- Contact & Details -->
+        <div class="card" style="padding: var(--space-6);">
+          <h3 style="margin-bottom: var(--space-5); font-size: 18px; display: flex; align-items: center; gap: 8px;"><i data-lucide="contact" style="color: var(--primary);"></i> Contact</h3>
+          <div id="contact-container" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <div class="skeleton" style="height: 60px; border-radius: 8px;"></div>
+          </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="card" style="padding: var(--space-6);">
+          <h3 style="margin-bottom: var(--space-5); font-size: 18px; display: flex; align-items: center; gap: 8px;"><i data-lucide="landmark" style="color: var(--primary);"></i> Banking</h3>
+          <div id="bank-container" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <div class="skeleton" style="height: 60px; border-radius: 8px;"></div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Right Column: Settings & PWA -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+      
+      <!-- Install App Widget -->
+      <div class="card" style="padding: var(--space-6); background: linear-gradient(135deg, var(--brand-navy) 0%, #1e293b 100%); color: white; border: none; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="smartphone" style="width: 24px; height: 24px; color: white;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 20px; color: white; font-weight: 700;">Install App</h3>
+          </div>
+        </div>
+        <p style="font-size: 15px; color: rgba(255,255,255,0.8); margin-bottom: 24px; line-height: 1.5;">Install the Associate Portal on your device for a native app experience.</p>
+        
+        <div id="pwa-install-container">
+          <div style="font-size: 14px; opacity: 0.7;">Checking browser compatibility...</div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="card" style="padding: var(--space-6);">
+        <h3 style="margin-bottom: var(--space-5); font-size: 18px; display: flex; align-items: center; gap: 8px;"><i data-lucide="shield" style="color: var(--text-muted);"></i> Security</h3>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center; height: 44px; font-weight: 600;" onclick="window.location.href='/change-password'">Change Password</button>
+          <form action="/api/auth/logout" method="POST" style="margin: 0;">
+            <button type="submit" class="btn" style="width: 100%; justify-content: center; background: var(--error-bg); color: var(--error); border: none; height: 44px; font-weight: 600;">Log Out</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Active Sessions -->
+      <div class="card" style="padding: var(--space-6);">
+        <h3 style="margin-bottom: var(--space-5); font-size: 18px; display: flex; align-items: center; gap: 8px;"><i data-lucide="activity" style="color: var(--text-muted);"></i> Active Sessions</h3>
+        <div id="sessions-container" style="display: flex; flex-direction: column; gap: var(--space-3);">
+          <div class="skeleton" style="height: 60px; border-radius: 8px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
+<script>
+  // --- User-Agent Parser ---
+  function parseUserAgent(ua) {
+    if (!ua) return { browser: 'Unknown', os: 'Unknown', device: 'Unknown' };
+    
+    let browser = 'Unknown Browser';
+    let os = 'Unknown OS';
+    let device = 'Desktop';
+    
+    // Browser detection
+    if (ua.includes('Edg/') || ua.includes('Edge/')) browser = 'Edge';
+    else if (ua.includes('OPR/') || ua.includes('Opera/')) browser = 'Opera';
+    else if (ua.includes('Firefox/')) browser = 'Firefox';
+    else if (ua.includes('CriOS/')) browser = 'Chrome';
+    else if (ua.includes('Chrome/') && !ua.includes('Edg/')) browser = 'Chrome';
+    else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Safari';
+    
+    // OS detection
+    if (ua.includes('Windows NT')) os = 'Windows';
+    else if (ua.includes('Mac OS X')) os = 'macOS';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+    else if (ua.includes('Linux')) os = 'Linux';
+    
+    // Device type
+    if (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) device = 'Mobile';
+    else if (ua.includes('iPad') || ua.includes('Tablet')) device = 'Tablet';
+    
+    return { browser, os, device };
+  }
+  
+  function getDeviceIcon(device) {
+    if (device === 'Mobile') return 'smartphone';
+    if (device === 'Tablet') return 'tablet';
+    return 'monitor';
+  }
+
+  // --- PWA Install Logic ---
+  let deferredPrompt;
+  const pwaContainer = document.getElementById('pwa-install-container');
+
+  function checkPWAStatus() {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      pwaContainer.innerHTML = `<div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #4ade80;"><i data-lucide="check-circle" style="width: 16px;"></i> App Installed</div>`;
+      lucide.createIcons();
+      return true;
+    }
+    return false;
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    if (!checkPWAStatus()) {
+      pwaContainer.innerHTML = `<button id="install-btn" class="btn" style="width: 100%; background-color: var(--brand-gold); color: var(--brand-navy); border: none; font-weight: 600;"><i data-lucide="download" style="width: 18px;"></i> Install App</button>`;
+      lucide.createIcons();
+      
+      document.getElementById('install-btn').addEventListener('click', async () => {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          pwaContainer.innerHTML = `<div style="font-size: 14px; opacity: 0.9;">Installing...</div>`;
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    // Also show in drawer
+    const drawerBtn = document.getElementById('drawer-install-btn');
+    if (drawerBtn) {
+      drawerBtn.style.display = 'flex';
+      drawerBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        }
+      });
+    }
+  });
+
+  // Fallback after 1.5s if beforeinstallprompt doesn't fire
+  setTimeout(() => {
+    if (!deferredPrompt && !checkPWAStatus()) {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
+      let msg = '';
+      if (isIOS) {
+        msg = `<div style="font-size: 13px; opacity: 0.9; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
+          <div style="font-weight: 600; margin-bottom: 6px;">Install on iPhone/iPad</div>
+          Tap the <b>Share</b> button below, then select <b>Add to Home Screen</b>.
+        </div>`;
+      } else if (isAndroid) {
+        msg = `<div style="font-size: 13px; opacity: 0.9; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
+          <div style="font-weight: 600; margin-bottom: 6px;">Install on Android</div>
+          Tap the browser <b>Menu (⋮)</b>, then select <b>Install app</b> or <b>Add to Home screen</b>.
+        </div>`;
+      } else {
+        msg = `<div style="font-size: 13px; opacity: 0.9; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px;">
+          <div style="font-weight: 600; margin-bottom: 6px;">Install from Browser</div>
+          Look for the install icon in your browser's address bar or use the browser menu.
+        </div>`;
+      }
+      pwaContainer.innerHTML = msg;
+    }
+  }, 1500);
+
+  window.addEventListener('appinstalled', () => {
+    checkPWAStatus();
+  });
+
+
+  // --- Profile Data Fetching ---
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/profile/me');
+      const data = await res.json();
+      if (data.success) {
+        const p = data.user.profile || {};
+        
+        // Verifications
+        const hasContact = p.primaryPhone && p.email;
+        const hasDocs = p.aadhaar && p.pan;
+        const hasBank = p.accountNo && p.ifsc;
+        
+        document.getElementById('verification-container').innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px; color: ${hasContact ? 'var(--success)' : 'var(--text-muted)'}">
+            <i data-lucide="${hasContact ? 'check-circle-2' : 'circle'}"></i> Profile
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; color: ${hasDocs ? 'var(--success)' : 'var(--text-muted)'}">
+            <i data-lucide="${hasDocs ? 'check-circle-2' : 'circle'}"></i> Documents
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; color: ${hasBank ? 'var(--success)' : 'var(--text-muted)'}">
+            <i data-lucide="${hasBank ? 'check-circle-2' : 'circle'}"></i> Bank
+          </div>
+        `;
+
+        // Contact
+        document.getElementById('contact-container').innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Phone</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.primaryPhone || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Email</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.email || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">WhatsApp</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.whatsappNumber || '—'}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Address</span>
+              <span style="font-weight: 500; color: var(--text-primary); line-height: 1.5;">${p.currentAddress || '—'}</span>
+            </div>
+          </div>
+        `;
+
+        // Bank (Masked by Backend)
+        document.getElementById('bank-container').innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Account Holder</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.accountHolder || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Bank Name</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.bank || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Account Number</span>
+              <span style="font-weight: 600; color: var(--text-primary); font-family: monospace;">${p.accountNo || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">IFSC</span>
+              <span style="font-weight: 600; color: var(--text-primary);">${p.ifsc || '—'}</span>
+            </div>
+          </div>
+        `;
+
+        // Sessions — with parsed User-Agent
+        let sessionHtml = '';
+        const currentToken = document.cookie.split(';').find(c => c.trim().startsWith('token='));
+        
+        data.user.sessions.forEach((s, idx) => {
+          const parsed = parseUserAgent(s.deviceInfo);
+          const icon = getDeviceIcon(parsed.device);
+          const isFirst = idx === 0;
+          const startDate = new Date(s.createdAt);
+          const formattedDate = startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          const formattedTime = startDate.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+          
+          sessionHtml += `
+            <div style="padding: 14px; background: var(--bg-main); border-radius: 10px; border: 1px solid ${isFirst ? 'var(--success)' : 'var(--border-color)'};">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i data-lucide="${icon}" style="width: 20px; height: 20px; color: ${isFirst ? 'var(--success)' : 'var(--text-muted)'};"></i>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600;">${parsed.browser} · ${parsed.os} · ${parsed.device}</div>
+                </div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-left: 30px;">
+                Started: ${formattedDate}, ${formattedTime}
+              </div>
+              ${isFirst ? '<div style="margin-left: 30px; margin-top: 6px;"><span class="status-chip status-approved" style="font-size: 11px;">Current Device</span></div>' : ''}
+            </div>
+          `;
+        });
+        document.getElementById('sessions-container').innerHTML = sessionHtml || '<div class="text-muted">No active sessions.</div>';
+
+        lucide.createIcons();
+      }
+    } catch(e) { console.error('Failed to load profile', e); }
+  }
+
+  loadProfile();
+</script>
+
+<%- include('../partials/footer') %>

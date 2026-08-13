@@ -1,0 +1,424 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  userId             String              @unique
+  passwordHash       String
+  role               String
+  isFirstLogin       Boolean             @default(true)
+  name               String
+  isActive           Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  parentAssociateId  String?
+  requestsApproved   ApprovalRequest[]   @relation("RequestApprover")
+  requestsTargeting  ApprovalRequest[]   @relation("RequestTarget")
+  requestsCreated    ApprovalRequest[]   @relation("RequestCreator")
+  auditLogs          AuditLog[]
+  bookings           Booking[]
+  commissionLedgers  CommissionLedger[]
+  customerReviews    CustomerReview[]
+  notifications      Notification[]
+  profile            Profile?
+  projectAssignments ProjectAssignment[]
+  sessions           Session[]
+  siteVisits         SiteVisit[]
+  travelAllowances   TravelAllowance[]
+  parentAssociate    User?               @relation("TeamHierarchy", fields: [parentAssociateId], references: [id])
+  downline           User[]              @relation("TeamHierarchy")
+}
+
+model Profile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  profilePhoto     String?
+  primaryPhone     String?
+  secondaryPhone   String?
+  emergencyContact String?
+  whatsappNumber   String?
+  email            String?
+  bloodGroup       String?
+  currentAddress   String?
+  permanentAddress String?
+  aadhaar          String?
+  pan              String?
+  aadhaarFile      String?
+  panFile          String?
+  accountHolder    String?
+  bank             String?
+  accountNo        String?
+  ifsc             String?
+  branch           String?
+  employmentStatus String?
+  company          String?
+  designation      String?
+  workAddress      String?
+  experience       String?
+  joiningDate      DateTime?
+  referredBy       String?
+  commissionConfig String?
+  user             User      @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  deviceInfo String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model ApprovalRequest {
+  id              String    @id @default(uuid())
+  type            String
+  status          String
+  payload         String?
+  rejectionReason String?
+  requestedById   String?
+  targetUserId    String?
+  approverId      String?
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  approver        User?     @relation("RequestApprover", fields: [approverId], references: [id])
+  targetUser      User?     @relation("RequestTarget", fields: [targetUserId], references: [id])
+  requestedBy     User?     @relation("RequestCreator", fields: [requestedById], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Project {
+  id                String              @id @default(uuid())
+  name              String
+  location          String?
+  description       String?
+  brochureUrl       String?
+  layoutUrl         String?
+  gallery           String?
+  customerOffers    String?
+  associateOffers   String?
+  status            String              @default("DRAFT")
+  projectCode       String?             @unique
+  projectType       String?
+  developerName     String?
+  marketingCompany  String?
+  projectStatus     String?
+  launchDate        DateTime?
+  completionDate    DateTime?
+  possessionDate    DateTime?
+  locationData      String?
+  legalData         String?
+  landData          String?
+  pricingData       String?
+  paymentPlanData   String?
+  amenities         String?
+  infrastructure    String?
+  constructionData  String?
+  marketingData     String?
+  mediaData         String?
+  salesData         String?
+  faqs              String?
+  wizardStep        Int                 @default(1)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  bookings          Booking[]
+  commissionLedgers CommissionLedger[]
+  customerReviews   CustomerReview[]
+  units             InventoryUnit[]
+  assignments       ProjectAssignment[]
+  siteVisits        SiteVisit[]
+  travelAllowances  TravelAllowance[]
+}
+
+model InventoryUnit {
+  id             String    @id @default(uuid())
+  projectId      String
+  identifier     String
+  unitNumber     String?
+  block          String?
+  status         String    @default("AVAILABLE")
+  size           String?
+  sizeUnit       String?
+  price          String?
+  basePrice      String?
+  offerPrice     String?
+  facing         String?
+  isCorner       Boolean   @default(false)
+  isParkFacing   Boolean   @default(false)
+  isRoadFacing   Boolean   @default(false)
+  premiumCharges String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  bookings       Booking[]
+  project        Project   @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, identifier])
+}
+
+model ProjectAssignment {
+  id         String   @id @default(uuid())
+  projectId  String
+  userId     String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  project    Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, userId])
+}
+
+model Promotion {
+  id           String    @id @default(uuid())
+  type         String
+  title        String
+  description  String?
+  imageUrl     String?
+  ctaText      String?
+  ctaLink      String?
+  projectId          String?
+  startDate          DateTime?
+  endDate            DateTime?
+  displayOrder       Int       @default(0)
+  isActive           Boolean   @default(true)
+  
+  // Detailed Offer Management Fields
+  offerType          String?   
+  discountAmount     String?
+  discountPercentage String?
+  bonusAmount        String?
+  commissionBonus    String?
+  otherBenefit       String?
+  termsAndConditions String?
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Booking {
+  id                String             @id @default(uuid())
+  customerName      String
+  customerPhone     String
+  customerAltPhone  String?
+  customerEmail     String?
+  customerAddress   String?
+  projectId         String
+  unitId            String
+  propertyType      String?
+  size              String?
+  price             String?
+  bookingDate       DateTime
+  bookingAmount     String
+  expectedAmount    String
+  paymentMode       String
+  notes             String?
+  documents         String?
+  associateId       String
+  status            String             @default("PENDING_AM")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  associate         User               @relation(fields: [associateId], references: [id])
+  unit              InventoryUnit      @relation(fields: [unitId], references: [id])
+  project           Project            @relation(fields: [projectId], references: [id])
+  commissionLedgers CommissionLedger[]
+  customerReviews   CustomerReview[]
+}
+
+model CommissionLedger {
+  id               String    @id @default(uuid())
+  associateId      String
+  bookingId        String?
+  projectId        String?
+  amount           String
+  type             String
+  percentageValue  String?
+  paymentStatus    String    @default("PENDING")
+  paymentDate      DateTime?
+  referenceRemarks String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  project          Project?  @relation(fields: [projectId], references: [id])
+  booking          Booking?  @relation(fields: [bookingId], references: [id])
+  associate        User      @relation(fields: [associateId], references: [id])
+}
+
+model TravelAllowance {
+  id              String    @id @default(uuid())
+  associateId     String
+  travelDate      DateTime
+  fromLocation    String
+  toLocation      String
+  purpose         String
+  projectId       String?
+  customerName    String?
+  distance        String
+  travelMode      String
+  amountRequested String
+  amountApproved  String?
+  supportingBill  String?
+  notes           String?
+  status          String    @default("PENDING")
+  paymentDate     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  project         Project?  @relation(fields: [projectId], references: [id])
+  associate       User      @relation(fields: [associateId], references: [id])
+}
+
+model SiteVisit {
+  id               String    @id @default(uuid())
+  associateId      String
+  projectId        String
+  customerName     String
+  customerPhone    String
+  date             DateTime
+  time             String
+  numVisitors      Int
+  purpose          String
+  notes            String?
+  status           String    @default("SCHEDULED")
+  outcome          String?
+  customerInterest String?
+  propertyViewed   String?
+  followUpRequired Boolean   @default(false)
+  followUpDate     DateTime?
+  remarks          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  project          Project   @relation(fields: [projectId], references: [id])
+  associate        User      @relation(fields: [associateId], references: [id])
+}
+
+model CustomerReview {
+  id                       String   @id @default(uuid())
+  associateId              String
+  projectId                String?
+  bookingId                String?
+  customerName             String
+  customerPhone            String
+  customerEmail            String?
+  interactionDate          DateTime
+  interactionSummary       String
+  overallRating            Int?
+  communicationRating      Int?
+  propertyExperienceRating Int?
+  writtenReview            String?
+  isSubmitted              Boolean  @default(false)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  booking                  Booking? @relation(fields: [bookingId], references: [id])
+  project                  Project? @relation(fields: [projectId], references: [id])
+  associate                User     @relation(fields: [associateId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DashboardCarousel {
+  id           String   @id @default(uuid())
+  title        String?
+  subtitle     String?
+  description  String?
+  image        String
+  type         String   // FEATURED, NEW, PROMOTION, OFFER
+  projectId    String?
+  ctaText      String?
+  ctaUrl       String?
+  startDate    DateTime?
+  endDate      DateTime?
+  priority     Int      @default(0)
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  isPublished  Boolean  @default(false)
+  createdBy    String
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DashboardOffer {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  image           String?
+  offerType       String   // PROJECT, BOOKING, COMMISSION, FESTIVAL
+  discount        String?
+  commissionBonus String?
+  projectId       String?
+  terms           String?
+  startDate       DateTime?
+  endDate         DateTime?
+  priority        Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Announcement {
+  id               String   @id @default(uuid())
+  title            String
+  message          String
+  type             String   // ANNOUNCEMENT, OFFER, NEW_PROJECT, WARNING, IMPORTANT
+  image            String?
+  ctaText          String?
+  ctaUrl           String?
+  priority         String   @default("NORMAL") // NORMAL, IMPORTANT, HIGH, CRITICAL
+  startDate        DateTime?
+  endDate          DateTime?
+  displayFrequency String   // ONCE_PER_SESSION, EVERY_VISIT, UNTIL_DISMISSED
+  targetRole       String   // ALL, MD, AM, ASSOCIATE
+  isActive         Boolean  @default(true)
+  createdBy        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  dismissals       AnnouncementDismissal[]
+}
+
+model AnnouncementDismissal {
+  id             String   @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  dismissedAt    DateTime @default(now())
+
+  @@unique([announcementId, userId])
+}
+
+model DashboardPopup {
+  id           String   @id @default(uuid())
+  contentType  String   // "image" or "text"
+  image        String?
+  title        String?
+  description  String?
+  ctaText      String?
+  ctaUrl       String?
+  isPublished  Boolean  @default(false)
+  createdBy    String
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -1,0 +1,209 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="margin-bottom: var(--space-6);">
+    <h1 style="font-size: 24px; font-weight: 700;">Edit Profile</h1>
+    <p class="text-muted">Update your personal, address, and banking details.</p>
+  </div>
+
+  <form id="profileEditForm" enctype="multipart/form-data" class="card" style="padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6);">
+    
+    <!-- Personal Information -->
+    <div>
+      <h3 style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;"><i data-lucide="user" style="color: var(--primary);"></i> Personal Information</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group">
+          <% if (profile && profile.profilePhoto) { %>
+            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <img src="<%= profile.profilePhoto %>" alt="Current Photo" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-light);" />
+              <span class="caption">Current Photo</span>
+            </div>
+          <% } %>
+          <%- include('../partials/file-upload', {
+            name: 'profilePhoto',
+            label: 'Profile Photo',
+            accept: 'image/*',
+            required: false
+          }) %>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Primary Phone</label>
+          <input type="text" name="primaryPhone" id="primaryPhone" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">WhatsApp Number</label>
+          <input type="text" name="whatsappNumber" id="whatsappNumber" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Email</label>
+          <input type="email" name="email" id="email" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Blood Group</label>
+          <input type="text" name="bloodGroup" id="bloodGroup" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Secondary Contact</label>
+          <input type="text" name="secondaryPhone" id="secondaryPhone" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Emergency Contact</label>
+          <input type="text" name="emergencyContact" id="emergencyContact" class="input-control" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Address -->
+    <div>
+      <h3 style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;"><i data-lucide="map-pin" style="color: var(--primary);"></i> Address</h3>
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <div class="input-group">
+          <label class="input-label">Current Address</label>
+          <textarea name="currentAddress" id="currentAddress" class="input-control" rows="3" required></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Permanent Address</label>
+          <textarea name="permanentAddress" id="permanentAddress" class="input-control" rows="3" required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div>
+      <h3 style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;"><i data-lucide="file-text" style="color: var(--primary);"></i> Documents <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">(Upload new to replace)</span></h3>
+      <div class="responsive-grid-2">
+        <div class="input-group">
+          <label class="input-label">Aadhaar Number</label>
+          <input type="text" name="aadhaar" id="aadhaar" class="input-control" />
+        </div>
+        <div class="input-group">
+          <% if (profile && profile.aadhaarFile) { %>
+            <div style="margin-bottom: 8px;">
+              <a href="<%= profile.aadhaarFile %>" target="_blank" style="font-size: 13px; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i data-lucide="file-text" style="width:14px;height:14px;"></i> View Current Aadhaar</a>
+            </div>
+          <% } %>
+          <%- include('../partials/file-upload', {
+            name: 'aadhaarFile',
+            label: 'Upload Aadhaar',
+            accept: '.pdf,image/*',
+            required: false
+          }) %>
+        </div>
+        <div class="input-group">
+          <label class="input-label">PAN Number</label>
+          <input type="text" name="pan" id="pan" class="input-control" />
+        </div>
+        <div class="input-group">
+          <% if (profile && profile.panFile) { %>
+            <div style="margin-bottom: 8px;">
+              <a href="<%= profile.panFile %>" target="_blank" style="font-size: 13px; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i data-lucide="file-text" style="width:14px;height:14px;"></i> View Current PAN</a>
+            </div>
+          <% } %>
+          <%- include('../partials/file-upload', {
+            name: 'panFile',
+            label: 'Upload PAN',
+            accept: '.pdf,image/*',
+            required: false
+          }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banking -->
+    <div>
+      <h3 style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-light); padding-bottom: 8px;"><i data-lucide="landmark" style="color: var(--primary);"></i> Banking Details</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group">
+          <label class="input-label">Account Holder Name</label>
+          <input type="text" name="accountHolder" id="accountHolder" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Bank Name</label>
+          <input type="text" name="bank" id="bank" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Account Number</label>
+          <input type="text" name="accountNo" id="accountNo" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">IFSC Code</label>
+          <input type="text" name="ifsc" id="ifsc" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Branch</label>
+          <input type="text" name="branch" id="branch" class="input-control" />
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-light);">
+      <a href="/profile" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" id="submitBtn">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Preload existing profile data using EJS rendered data
+  function loadProfileForEdit() {
+    try {
+      const p = JSON.parse('<%- JSON.stringify(profile || {}).replace(/\\/g, "\\\\").replace(/\'/g, "\\\\\'").replace(/\"/g, "\\\\\"") %>');
+      if (p) {
+        document.getElementById('primaryPhone').value = p.primaryPhone || '';
+        document.getElementById('whatsappNumber').value = p.whatsappNumber || '';
+        document.getElementById('email').value = p.email || '';
+        document.getElementById('bloodGroup').value = p.bloodGroup || '';
+        document.getElementById('secondaryPhone').value = p.secondaryPhone || '';
+        document.getElementById('emergencyContact').value = p.emergencyContact || '';
+        
+        document.getElementById('currentAddress').value = p.currentAddress || '';
+        document.getElementById('permanentAddress').value = p.permanentAddress || '';
+        
+        document.getElementById('aadhaar').value = p.aadhaar || '';
+        document.getElementById('pan').value = p.pan || '';
+        
+        document.getElementById('accountHolder').value = p.accountHolder || '';
+        document.getElementById('bank').value = p.bank || '';
+        document.getElementById('accountNo').value = p.accountNo || '';
+        document.getElementById('ifsc').value = p.ifsc || '';
+        document.getElementById('branch').value = p.branch || '';
+      }
+    } catch(e) {
+      console.error('Failed to load profile data', e);
+    }
+  }
+
+  loadProfileForEdit();
+
+  // Handle form submission
+  document.getElementById('profileEditForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+
+    const formData = new FormData(e.target);
+
+    try {
+      const res = await fetch('/api/profile/me', {
+        method: 'PUT',
+        body: formData // multer handles multipart/form-data
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        window.location.href = '/profile';
+      } else {
+        alert('Error: ' + (data.error || 'Failed to update profile'));
+        btn.textContent = 'Save Changes';
+        btn.disabled = false;
+      }
+    } catch (err) {
+      alert('Network error during submission.');
+      btn.textContent = 'Save Changes';
+      btn.disabled = false;
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

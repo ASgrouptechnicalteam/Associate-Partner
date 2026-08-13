@@ -1,0 +1,94 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Notifications</h1>
+      <p class="text-muted">Stay up to date with your activities.</p>
+    </div>
+    <button class="btn btn-secondary" onclick="markAllAsRead()">Mark all as read</button>
+  </div>
+
+  <div id="notifications-feed" style="display: flex; flex-direction: column; gap: var(--space-3);">
+    <div class="text-muted">Loading notifications...</div>
+  </div>
+</div>
+
+<script>
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/notifications');
+      const data = await res.json();
+      if (data.success) {
+        const feed = document.getElementById('notifications-feed');
+        if (data.notifications.length === 0) {
+          feed.innerHTML = '<div class="card" style="padding: 24px; text-align: center; color: var(--text-muted);">No notifications yet.</div>';
+          return;
+        }
+
+        let html = '';
+        data.notifications.forEach(n => {
+          const isUnread = !n.isRead;
+          const bg = isUnread ? 'var(--surface)' : 'var(--surface)';
+          const border = isUnread ? 'border-left: 3px solid var(--primary); background-color: var(--primary-bg);' : 'border-left: 3px solid transparent; opacity: 0.8;';
+          
+          let icon = 'bell';
+          if (n.category === 'SYSTEM') icon = 'settings';
+          else if (n.category === 'FINANCE') icon = 'dollar-sign';
+          else if (n.category === 'PROJECT') icon = 'building';
+          else if (n.category === 'USER') icon = 'user';
+
+          html += `
+            <div class="card" style="padding: var(--space-4); ${border} cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='none'" onclick="handleNotificationClick('${n.id}', '${n.link || '#'}', ${isUnread})">
+              <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: ${isUnread ? 'var(--primary)' : 'var(--surface-muted)'}; color: ${isUnread ? 'white' : 'var(--text-muted)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i data-lucide="${icon}" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div style="flex: 1;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                    <div style="font-size: 11px; font-weight: 700; color: ${isUnread ? 'var(--primary)' : 'var(--text-muted)'}; text-transform: uppercase; letter-spacing: 0.05em;">
+                      ${n.category}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                      ${new Date(n.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <div style="font-size: 14px; color: var(--text-primary); font-weight: ${isUnread ? '600' : '400'}; line-height: 1.5;">
+                    ${n.message}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        feed.innerHTML = html;
+        lucide.createIcons();
+      }
+    } catch(e) {}
+  }
+
+  async function handleNotificationClick(id, link, isUnread) {
+    if (isUnread) {
+      try {
+        await fetch(`/api/notifications/${id}/read`, { method: 'PUT' });
+      } catch(e) {}
+    }
+    if (link && link !== '#') {
+      window.location.href = link;
+    } else {
+      loadNotifications();
+    }
+  }
+
+  async function markAllAsRead() {
+    try {
+      await fetch('/api/notifications/read-all', { method: 'PUT' });
+      loadNotifications();
+      if(window.pollNotifications) window.pollNotifications();
+    } catch(e) {}
+  }
+
+  loadNotifications();
+</script>
+
+<%- include('../partials/footer') %>

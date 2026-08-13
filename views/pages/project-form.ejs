@@ -1,0 +1,891 @@
+<%- include('../partials/head') %>
+
+<div>
+  <!-- Header with progress -->
+  <div style="margin-bottom: var(--space-6);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+      <div>
+        <h1 style="font-size: 22px; font-weight: 700;">Project Wizard</h1>
+        <p class="text-muted" id="step-label">Step 1 of 15 — Basic Information</p>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="saveDraftBtn" onclick="saveDraft()">Save Draft</button>
+        <a href="/projects" class="btn btn-secondary">Cancel</a>
+      </div>
+    </div>
+    
+    <!-- Progress bar -->
+    <div style="background: var(--surface-muted); border-radius: 8px; height: 8px; overflow: hidden;">
+      <div id="progress-bar" style="width: 6.67%; height: 100%; background: linear-gradient(90deg, var(--brand-gold) 0%, #f59e0b 100%); border-radius: 8px; transition: width 0.3s ease;"></div>
+    </div>
+  </div>
+
+  <!-- Wizard Steps Container -->
+  <div class="card" style="padding: var(--space-6);">
+
+    <!-- STEP 1: Basic Information -->
+    <div class="wizard-step" id="step-1">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Basic Project Information</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group">
+          <label class="input-label">Project Name *</label>
+          <input type="text" id="f-name" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Project Code / ID</label>
+          <input type="text" id="f-projectCode" class="input-control" placeholder="e.g. PROJ-001" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Project Type *</label>
+          <select id="f-projectType" class="input-control">
+            <option value="">Select type</option>
+            <option value="Residential Plots">Residential Plots</option>
+            <option value="Villas">Villas</option>
+            <option value="Apartments">Apartments</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Farm Land">Farm Land</option>
+            <option value="Mixed Development">Mixed Development</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Project Status *</label>
+          <select id="f-projectStatus" class="input-control">
+            <option value="">Select status</option>
+            <option value="Upcoming">Upcoming</option>
+            <option value="Pre-Launch">Pre-Launch</option>
+            <option value="Launch">Launch</option>
+            <option value="Under Development">Under Development</option>
+            <option value="Ready to Occupy">Ready to Occupy</option>
+            <option value="Sold Out">Sold Out</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Developer / Builder Name</label>
+          <input type="text" id="f-developerName" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Marketing Company</label>
+          <input type="text" id="f-marketingCompany" class="input-control" />
+        </div>
+      </div>
+      <div class="responsive-grid-2" style="margin-top: 0;">
+        <div class="input-group" style="grid-column: 1 / -1;">
+          <label class="input-label">Description</label>
+          <textarea id="f-description" class="input-control" rows="3" style="height: auto;"></textarea>
+        </div>
+      </div>
+      <h4 style="margin-bottom: var(--space-3); font-size: 15px; color: var(--text-secondary);">Dates</h4>
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group">
+          <label class="input-label">Date of Launch</label>
+          <input type="date" id="f-launchDate" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Expected Completion</label>
+          <input type="date" id="f-completionDate" class="input-control" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Possession Date</label>
+          <input type="date" id="f-possessionDate" class="input-control" />
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Location -->
+    <div class="wizard-step" id="step-2" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Location Details</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">State</label><input type="text" id="f-loc-state" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">District</label><input type="text" id="f-loc-district" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">City / Town</label><input type="text" id="f-loc-city" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Village</label><input type="text" id="f-loc-village" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Survey Numbers</label><input type="text" id="f-loc-survey" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Landmark</label><input type="text" id="f-loc-landmark" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Latitude</label><input type="text" id="f-loc-lat" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Longitude</label><input type="text" id="f-loc-lng" class="input-control" /></div>
+      </div>
+      <div class="input-group"><label class="input-label">Complete Address</label><textarea id="f-loc-address" class="input-control" rows="2" style="height: auto;"></textarea></div>
+      
+      <h4 style="margin: var(--space-5) 0 var(--space-3); font-size: 15px; color: var(--text-secondary);">Distances (km)</h4>
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group"><label class="input-label">Highway</label><input type="text" id="f-loc-highway" class="input-control" placeholder="e.g. 2 km" /></div>
+        <div class="input-group"><label class="input-label">Airport</label><input type="text" id="f-loc-airport" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Railway Station</label><input type="text" id="f-loc-railway" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Bus Stand</label><input type="text" id="f-loc-bus" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Schools</label><input type="text" id="f-loc-schools" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Hospitals</label><input type="text" id="f-loc-hospitals" class="input-control" /></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Legal -->
+    <div class="wizard-step" id="step-3" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Legal Information</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Add legal approvals, certificates, and documents.</p>
+      <div id="legal-items"></div>
+      <button type="button" class="btn btn-secondary" onclick="addLegalItem()" style="margin-top: var(--space-3);">+ Add Approval / Document</button>
+    </div>
+
+    <!-- STEP 4: Land Details -->
+    <div class="wizard-step" id="step-4" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Land Details</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Total Land Area</label><input type="text" id="f-land-totalArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Saleable Area</label><input type="text" id="f-land-saleableArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Open Space</label><input type="text" id="f-land-openSpace" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Road Area</label><input type="text" id="f-land-roadArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Park Area</label><input type="text" id="f-land-parkArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Clubhouse Area</label><input type="text" id="f-land-clubhouseArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Green Belt</label><input type="text" id="f-land-greenBelt" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Number of Blocks</label><input type="number" id="f-land-blocks" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Number of Plots</label><input type="number" id="f-land-plots" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Phase Details</label><input type="text" id="f-land-phases" class="input-control" /></div>
+      </div>
+      <div class="input-group"><label class="input-label">Plot Dimensions / Sizes</label><textarea id="f-land-plotDimensions" class="input-control" rows="2" style="height: auto;" placeholder="e.g. 30x40, 30x50, 40x60"></textarea></div>
+      <div class="input-group" style="margin-bottom: 0;"><label class="input-label">Plot Facings Available</label><textarea id="f-land-plotFacing" class="input-control" rows="2" style="height: auto;" placeholder="e.g. North, South, East, West"></textarea></div>
+    </div>
+
+    <!-- STEP 5: Inventory -->
+    <div class="wizard-step" id="step-5" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Inventory Management</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Manage individual units/plots. Save the project first, then add units here.</p>
+      <div id="inventory-container">
+        <div class="text-muted" style="text-align: center; padding: var(--space-6);">Save the project as a draft first to manage inventory units.</div>
+      </div>
+    </div>
+
+    <!-- STEP 6: Pricing -->
+    <div class="wizard-step" id="step-6" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Pricing</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Price per Sq. Yard</label><input type="text" id="f-price-sqyard" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Price per Sq. Ft.</label><input type="text" id="f-price-sqft" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Registration Charges</label><input type="text" id="f-price-registration" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">GST</label><input type="text" id="f-price-gst" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Development Charges</label><input type="text" id="f-price-devCharges" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Maintenance Charges</label><input type="text" id="f-price-maintenance" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Clubhouse Charges</label><input type="text" id="f-price-clubhouse" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Parking Charges</label><input type="text" id="f-price-parking" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">PLC (Preferential Location)</label><input type="text" id="f-price-plc" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Documentation Charges</label><input type="text" id="f-price-documentation" class="input-control" /></div>
+      </div>
+      <h4 style="margin-bottom: var(--space-3); font-size: 15px; color: var(--text-secondary);">Offers / Discounts</h4>
+      <div class="input-group"><label class="input-label">Customer Offers</label><textarea id="f-customerOffers" class="input-control" rows="2" style="height: auto;"></textarea></div>
+      <div class="input-group" style="margin-bottom: 0;"><label class="input-label">Associate Offers</label><textarea id="f-associateOffers" class="input-control" rows="2" style="height: auto;"></textarea></div>
+    </div>
+
+    <!-- STEP 7: Payment Plans -->
+    <div class="wizard-step" id="step-7" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Payment Plans</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Down Payment</label><input type="text" id="f-pay-downPayment" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Booking Amount</label><input type="text" id="f-pay-bookingAmount" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">EMI Options</label><input type="text" id="f-pay-emiOptions" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Bank Loan Available</label>
+          <select id="f-pay-bankLoan" class="input-control"><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+        <div class="input-group"><label class="input-label">Partner Banks</label><input type="text" id="f-pay-partnerBanks" class="input-control" placeholder="SBI, HDFC, ICICI..." /></div>
+        <div class="input-group"><label class="input-label">Interest Rate</label><input type="text" id="f-pay-interestRate" class="input-control" /></div>
+      </div>
+      <div class="input-group"><label class="input-label">Cancellation Policy</label><textarea id="f-pay-cancellationPolicy" class="input-control" rows="2" style="height: auto;"></textarea></div>
+      <div class="input-group" style="margin-bottom: 0;"><label class="input-label">Refund Policy</label><textarea id="f-pay-refundPolicy" class="input-control" rows="2" style="height: auto;"></textarea></div>
+    </div>
+
+    <!-- STEP 8: Amenities -->
+    <div class="wizard-step" id="step-8" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Amenities</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Select all available amenities.</p>
+      <div id="amenities-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;"></div>
+      <div class="input-group" style="margin-top: var(--space-4); margin-bottom: 0;">
+        <label class="input-label">Custom Amenities (comma separated)</label>
+        <input type="text" id="f-customAmenities" class="input-control" placeholder="e.g. Yoga Center, Dog Park" />
+      </div>
+    </div>
+
+    <!-- STEP 9: Infrastructure -->
+    <div class="wizard-step" id="step-9" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Nearby Infrastructure</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Add nearby landmarks, institutions, and facilities.</p>
+      <div id="infra-items"></div>
+      <button type="button" class="btn btn-secondary" onclick="addInfraItem()" style="margin-top: var(--space-3);">+ Add Nearby Place</button>
+    </div>
+
+    <!-- STEP 10: Construction -->
+    <div class="wizard-step" id="step-10" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Construction Details</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Applicable for Apartments, Villas, and Mixed Development.</p>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Number of Floors</label><input type="number" id="f-con-floors" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Number of Towers</label><input type="number" id="f-con-towers" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Total Units</label><input type="number" id="f-con-totalUnits" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Built-up Area</label><input type="text" id="f-con-builtUpArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Carpet Area</label><input type="text" id="f-con-carpetArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Super Built-up Area</label><input type="text" id="f-con-superBuiltUpArea" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Structure Type</label><input type="text" id="f-con-structureType" class="input-control" placeholder="e.g. RCC Frame" /></div>
+        <div class="input-group"><label class="input-label">Flooring</label><input type="text" id="f-con-flooring" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Plumbing</label><input type="text" id="f-con-plumbing" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Electrical</label><input type="text" id="f-con-electrical" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Doors</label><input type="text" id="f-con-doors" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Windows</label><input type="text" id="f-con-windows" class="input-control" /></div>
+      </div>
+    </div>
+
+    <!-- STEP 11: Marketing -->
+    <div class="wizard-step" id="step-11" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Marketing Information</h3>
+      <div class="input-group"><label class="input-label">USP (Unique Selling Proposition)</label><textarea id="f-mkt-usp" class="input-control" rows="2" style="height: auto;"></textarea></div>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Target Audience</label><input type="text" id="f-mkt-targetAudience" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Investment Potential</label><input type="text" id="f-mkt-investmentPotential" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Expected ROI (%)</label><input type="text" id="f-mkt-expectedROI" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Rental Potential</label><input type="text" id="f-mkt-rentalPotential" class="input-control" /></div>
+      </div>
+      <div class="input-group" style="margin-bottom: 0;"><label class="input-label">Future Growth Factors</label><textarea id="f-mkt-futureGrowth" class="input-control" rows="2" style="height: auto;"></textarea></div>
+    </div>
+
+    <!-- STEP 12: Media -->
+    <div class="wizard-step" id="step-12" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Media Library</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Upload brochures, layouts, gallery images, and videos. Media files are uploaded individually after saving the project draft.</p>
+      <div class="responsive-grid-2">
+        <div class="input-group">
+          <%- include('../partials/file-upload', {
+            name: 'brochure',
+            id: 'f-media-brochure',
+            label: 'Brochure (PDF)',
+            accept: '.pdf',
+            required: false
+          }) %>
+        </div>
+        <div class="input-group">
+          <%- include('../partials/file-upload', {
+            name: 'layout',
+            id: 'f-media-layout',
+            label: 'Layout Plan',
+            accept: '.pdf,image/*',
+            required: false
+          }) %>
+        </div>
+        <div class="input-group" style="grid-column: 1 / -1;">
+          <%- include('../partials/file-upload', {
+            name: 'gallery',
+            id: 'f-media-gallery',
+            label: 'Gallery Images',
+            accept: 'image/*',
+            multiple: true,
+            required: false
+          }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 13: Sales Assignment -->
+    <div class="wizard-step" id="step-13" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Sales Assignment</h3>
+      <div class="responsive-grid-2">
+        <div class="input-group"><label class="input-label">Assigned Sales Manager</label><input type="text" id="f-sales-manager" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Assigned Telecaller</label><input type="text" id="f-sales-telecaller" class="input-control" /></div>
+        <div class="input-group"><label class="input-label">Project Manager</label><input type="text" id="f-sales-projectManager" class="input-control" /></div>
+      </div>
+      <div id="inventory-summary" style="margin-top: var(--space-4);"></div>
+    </div>
+
+    <!-- STEP 14: FAQs -->
+    <div class="wizard-step" id="step-14" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Customer FAQs</h3>
+      <p class="text-muted" style="margin-bottom: var(--space-4);">Add common questions and answers customers may ask.</p>
+      <div id="faq-items"></div>
+      <button type="button" class="btn btn-secondary" onclick="addFaqItem()" style="margin-top: var(--space-3);">+ Add FAQ</button>
+    </div>
+
+    <!-- STEP 15: Review & Publish -->
+    <div class="wizard-step" id="step-15" style="display: none;">
+      <h3 style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Review & Publish</h3>
+      <div id="review-content"></div>
+      <div id="review-warnings" style="margin-top: var(--space-4);"></div>
+    </div>
+
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-6); flex-wrap: wrap; gap: var(--space-3);">
+    <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="display: none;">← Back</button>
+    <div style="margin-left: auto; display: flex; gap: 8px;">
+      <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next →</button>
+      <button class="btn btn-gold" id="submitBtn" onclick="submitForApproval()" style="display: none;">Submit for Approval</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOTAL_STEPS = 15;
+  let currentStep = 1;
+  let projectId = null; // Set if editing existing
+
+  const stepNames = [
+    '', 'Basic Information', 'Location', 'Legal', 'Land Details', 'Inventory',
+    'Pricing', 'Payment Plans', 'Amenities', 'Nearby Infrastructure',
+    'Construction', 'Marketing', 'Media', 'Sales Assignment', 'FAQs', 'Review & Publish'
+  ];
+
+  // Check if editing
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('id')) {
+    projectId = urlParams.get('id');
+    loadExistingProject(projectId);
+  }
+
+  // --- Amenities Checkboxes ---
+  const defaultAmenities = [
+    '40/60/80/100 Feet Roads', 'Street Lights', 'Underground Electricity', 'Underground Drainage',
+    'Water Supply', 'Overhead Tank', 'Parks', 'Children\'s Play Area', 'Jogging Track',
+    'Clubhouse', 'Swimming Pool', 'Gym', 'CCTV', 'Security', 'Compound Wall',
+    'Landscaped Gardens', 'Rainwater Harvesting', 'Solar Lighting', 'EV Charging', 'Wi-Fi Zone'
+  ];
+  const amenGrid = document.getElementById('amenities-grid');
+  defaultAmenities.forEach(a => {
+    amenGrid.innerHTML += `<label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface-muted); border-radius: 8px; cursor: pointer; font-size: 14px;">
+      <input type="checkbox" class="amenity-cb" value="${a}" /> ${a}
+    </label>`;
+  });
+
+  // --- Default FAQs ---
+  const defaultFAQs = [
+    'Is the project legally approved?', 'Is a bank loan available?', 'What is the price?',
+    'What are the nearby landmarks?', 'Is registration included?', 'What amenities are available?',
+    'Is it suitable for investment?', 'What is the expected appreciation?',
+    'What is the possession timeline?', 'What EMI options are available?', 'What documents are required?'
+  ];
+
+  let legalCounter = 0;
+  let infraCounter = 0;
+  let faqCounter = 0;
+
+  function addLegalItem(data) {
+    legalCounter++;
+    const d = data || {};
+    document.getElementById('legal-items').insertAdjacentHTML('beforeend', `
+      <div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px; border: 1px solid var(--border);" id="legal-${legalCounter}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 14px;">Approval / Document</strong>
+          <button type="button" class="btn btn-secondary" style="height: 28px; padding: 0 8px; font-size: 12px;" onclick="document.getElementById('legal-${legalCounter}').remove()">Remove</button>
+        </div>
+        <div class="responsive-grid-2" style="margin-bottom: 0;">
+          <div class="input-group"><label class="input-label">Type</label>
+            <select class="input-control legal-type">
+              <option value="">Select</option>
+              <option ${d.type==='DTCP'?'selected':''}>DTCP</option><option ${d.type==='HMDA'?'selected':''}>HMDA</option>
+              <option ${d.type==='RERA'?'selected':''}>RERA</option><option ${d.type==='Municipal'?'selected':''}>Municipal</option>
+              <option ${d.type==='Panchayat'?'selected':''}>Panchayat</option><option ${d.type==='Conversion'?'selected':''}>Conversion</option>
+              <option ${d.type==='Encumbrance'?'selected':''}>Encumbrance</option><option ${d.type==='Title Clearance'?'selected':''}>Title Clearance</option>
+              <option ${d.type==='NOC'?'selected':''}>NOC</option><option ${d.type==='Other'?'selected':''}>Other</option>
+            </select>
+          </div>
+          <div class="input-group"><label class="input-label">Status</label>
+            <select class="input-control legal-status"><option value="Pending" ${d.status==='Pending'?'selected':''}>Pending</option><option value="Received" ${d.status==='Received'?'selected':''}>Received</option><option value="Verified" ${d.status==='Verified'?'selected':''}>Verified</option></select>
+          </div>
+          <div class="input-group"><label class="input-label">Document Number</label><input type="text" class="input-control legal-docNumber" value="${d.docNumber||''}" /></div>
+          <div class="input-group"><label class="input-label">Issue Date</label><input type="date" class="input-control legal-issueDate" value="${d.issueDate||''}" /></div>
+          <div class="input-group" style="grid-column: 1 / -1;"><label class="input-label">Remarks</label><input type="text" class="input-control legal-remarks" value="${d.remarks||''}" /></div>
+        </div>
+      </div>`);
+  }
+
+  function addInfraItem(data) {
+    infraCounter++;
+    const d = data || {};
+    document.getElementById('infra-items').insertAdjacentHTML('beforeend', `
+      <div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px; border: 1px solid var(--border);" id="infra-${infraCounter}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 14px;">Nearby Place</strong>
+          <button type="button" class="btn btn-secondary" style="height: 28px; padding: 0 8px; font-size: 12px;" onclick="document.getElementById('infra-${infraCounter}').remove()">Remove</button>
+        </div>
+        <div class="responsive-grid-2" style="margin-bottom: 0;">
+          <div class="input-group"><label class="input-label">Name</label><input type="text" class="input-control infra-name" value="${d.name||''}" /></div>
+          <div class="input-group"><label class="input-label">Category</label>
+            <select class="input-control infra-category">
+              <option value="Education" ${d.category==='Education'?'selected':''}>Education</option>
+              <option value="Healthcare" ${d.category==='Healthcare'?'selected':''}>Healthcare</option>
+              <option value="Financial" ${d.category==='Financial'?'selected':''}>Financial</option>
+              <option value="Lifestyle" ${d.category==='Lifestyle'?'selected':''}>Lifestyle</option>
+              <option value="Transport" ${d.category==='Transport'?'selected':''}>Transport</option>
+              <option value="Employment" ${d.category==='Employment'?'selected':''}>Employment</option>
+              <option value="Tourism" ${d.category==='Tourism'?'selected':''}>Tourism</option>
+            </select>
+          </div>
+          <div class="input-group"><label class="input-label">Distance</label><input type="text" class="input-control infra-distance" value="${d.distance||''}" /></div>
+          <div class="input-group"><label class="input-label">Travel Time</label><input type="text" class="input-control infra-travelTime" value="${d.travelTime||''}" placeholder="e.g. 10 mins" /></div>
+        </div>
+      </div>`);
+  }
+
+  function addFaqItem(data) {
+    faqCounter++;
+    const d = data || {};
+    document.getElementById('faq-items').insertAdjacentHTML('beforeend', `
+      <div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px; border: 1px solid var(--border);" id="faq-${faqCounter}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 14px;">FAQ</strong>
+          <button type="button" class="btn btn-secondary" style="height: 28px; padding: 0 8px; font-size: 12px;" onclick="document.getElementById('faq-${faqCounter}').remove()">Remove</button>
+        </div>
+        <div class="input-group"><label class="input-label">Question</label><input type="text" class="input-control faq-question" value="${d.question||''}" /></div>
+        <div class="input-group" style="margin-bottom: 0;"><label class="input-label">Answer</label><textarea class="input-control faq-answer" rows="2" style="height: auto;">${d.answer||''}</textarea></div>
+      </div>`);
+  }
+
+  // --- Step Navigation ---
+  function showStep(step) {
+    document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+    document.getElementById('step-' + step).style.display = 'block';
+    document.getElementById('step-label').textContent = `Step ${step} of ${TOTAL_STEPS} — ${stepNames[step]}`;
+    document.getElementById('progress-bar').style.width = ((step / TOTAL_STEPS) * 100) + '%';
+    
+    document.getElementById('prevBtn').style.display = step > 1 ? 'inline-flex' : 'none';
+    document.getElementById('nextBtn').style.display = step < TOTAL_STEPS ? 'inline-flex' : 'none';
+    document.getElementById('submitBtn').style.display = step === TOTAL_STEPS ? 'inline-flex' : 'none';
+    
+    currentStep = step;
+    
+    // Generate review at step 15
+    if (step === TOTAL_STEPS) generateReview();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextStep() {
+    if (currentStep < TOTAL_STEPS) showStep(currentStep + 1);
+  }
+  function prevStep() {
+    if (currentStep > 1) showStep(currentStep - 1);
+  }
+
+  // --- Collect all form data ---
+  function collectData() {
+    const data = {};
+    if (projectId) data.id = projectId;
+
+    // Step 1
+    data.name = document.getElementById('f-name').value;
+    data.projectCode = document.getElementById('f-projectCode').value;
+    data.projectType = document.getElementById('f-projectType').value;
+    data.projectStatus = document.getElementById('f-projectStatus').value;
+    data.developerName = document.getElementById('f-developerName').value;
+    data.marketingCompany = document.getElementById('f-marketingCompany').value;
+    data.description = document.getElementById('f-description').value;
+    data.launchDate = document.getElementById('f-launchDate').value;
+    data.completionDate = document.getElementById('f-completionDate').value;
+    data.possessionDate = document.getElementById('f-possessionDate').value;
+
+    // Step 2: Location
+    data.locationData = JSON.stringify({
+      state: document.getElementById('f-loc-state').value,
+      district: document.getElementById('f-loc-district').value,
+      city: document.getElementById('f-loc-city').value,
+      village: document.getElementById('f-loc-village').value,
+      surveyNumbers: document.getElementById('f-loc-survey').value,
+      landmark: document.getElementById('f-loc-landmark').value,
+      lat: document.getElementById('f-loc-lat').value,
+      lng: document.getElementById('f-loc-lng').value,
+      address: document.getElementById('f-loc-address').value,
+      distances: {
+        highway: document.getElementById('f-loc-highway').value,
+        airport: document.getElementById('f-loc-airport').value,
+        railway: document.getElementById('f-loc-railway').value,
+        bus: document.getElementById('f-loc-bus').value,
+        schools: document.getElementById('f-loc-schools').value,
+        hospitals: document.getElementById('f-loc-hospitals').value
+      }
+    });
+
+    // Step 3: Legal
+    const legalItems = [];
+    document.querySelectorAll('#legal-items > div').forEach(el => {
+      legalItems.push({
+        type: el.querySelector('.legal-type')?.value || '',
+        status: el.querySelector('.legal-status')?.value || '',
+        docNumber: el.querySelector('.legal-docNumber')?.value || '',
+        issueDate: el.querySelector('.legal-issueDate')?.value || '',
+        remarks: el.querySelector('.legal-remarks')?.value || ''
+      });
+    });
+    data.legalData = JSON.stringify(legalItems);
+
+    // Step 4: Land
+    data.landData = JSON.stringify({
+      totalArea: document.getElementById('f-land-totalArea').value,
+      saleableArea: document.getElementById('f-land-saleableArea').value,
+      openSpace: document.getElementById('f-land-openSpace').value,
+      roadArea: document.getElementById('f-land-roadArea').value,
+      parkArea: document.getElementById('f-land-parkArea').value,
+      clubhouseArea: document.getElementById('f-land-clubhouseArea').value,
+      greenBelt: document.getElementById('f-land-greenBelt').value,
+      blocks: document.getElementById('f-land-blocks').value,
+      plots: document.getElementById('f-land-plots').value,
+      phases: document.getElementById('f-land-phases').value,
+      plotDimensions: document.getElementById('f-land-plotDimensions').value,
+      plotFacing: document.getElementById('f-land-plotFacing').value
+    });
+
+    // Step 6: Pricing
+    data.pricingData = JSON.stringify({
+      pricePerSqYard: document.getElementById('f-price-sqyard').value,
+      pricePerSqFt: document.getElementById('f-price-sqft').value,
+      registration: document.getElementById('f-price-registration').value,
+      gst: document.getElementById('f-price-gst').value,
+      devCharges: document.getElementById('f-price-devCharges').value,
+      maintenance: document.getElementById('f-price-maintenance').value,
+      clubhouse: document.getElementById('f-price-clubhouse').value,
+      parking: document.getElementById('f-price-parking').value,
+      plc: document.getElementById('f-price-plc').value,
+      documentation: document.getElementById('f-price-documentation').value
+    });
+    data.customerOffers = document.getElementById('f-customerOffers').value;
+    data.associateOffers = document.getElementById('f-associateOffers').value;
+
+    // Step 7: Payment
+    data.paymentPlanData = JSON.stringify({
+      downPayment: document.getElementById('f-pay-downPayment').value,
+      bookingAmount: document.getElementById('f-pay-bookingAmount').value,
+      emiOptions: document.getElementById('f-pay-emiOptions').value,
+      bankLoan: document.getElementById('f-pay-bankLoan').value,
+      partnerBanks: document.getElementById('f-pay-partnerBanks').value,
+      interestRate: document.getElementById('f-pay-interestRate').value,
+      cancellationPolicy: document.getElementById('f-pay-cancellationPolicy').value,
+      refundPolicy: document.getElementById('f-pay-refundPolicy').value
+    });
+
+    // Step 8: Amenities
+    const selectedAmenities = [];
+    document.querySelectorAll('.amenity-cb:checked').forEach(cb => selectedAmenities.push(cb.value));
+    const custom = document.getElementById('f-customAmenities').value;
+    if (custom) custom.split(',').forEach(c => { if (c.trim()) selectedAmenities.push(c.trim()); });
+    data.amenities = JSON.stringify(selectedAmenities);
+
+    // Step 9: Infrastructure
+    const infraItems = [];
+    document.querySelectorAll('#infra-items > div').forEach(el => {
+      infraItems.push({
+        name: el.querySelector('.infra-name')?.value || '',
+        category: el.querySelector('.infra-category')?.value || '',
+        distance: el.querySelector('.infra-distance')?.value || '',
+        travelTime: el.querySelector('.infra-travelTime')?.value || ''
+      });
+    });
+    data.infrastructure = JSON.stringify(infraItems);
+
+    // Step 10: Construction
+    data.constructionData = JSON.stringify({
+      floors: document.getElementById('f-con-floors').value,
+      towers: document.getElementById('f-con-towers').value,
+      totalUnits: document.getElementById('f-con-totalUnits').value,
+      builtUpArea: document.getElementById('f-con-builtUpArea').value,
+      carpetArea: document.getElementById('f-con-carpetArea').value,
+      superBuiltUpArea: document.getElementById('f-con-superBuiltUpArea').value,
+      structureType: document.getElementById('f-con-structureType').value,
+      flooring: document.getElementById('f-con-flooring').value,
+      plumbing: document.getElementById('f-con-plumbing').value,
+      electrical: document.getElementById('f-con-electrical').value,
+      doors: document.getElementById('f-con-doors').value,
+      windows: document.getElementById('f-con-windows').value
+    });
+
+    // Step 11: Marketing
+    data.marketingData = JSON.stringify({
+      usp: document.getElementById('f-mkt-usp').value,
+      targetAudience: document.getElementById('f-mkt-targetAudience').value,
+      investmentPotential: document.getElementById('f-mkt-investmentPotential').value,
+      expectedROI: document.getElementById('f-mkt-expectedROI').value,
+      rentalPotential: document.getElementById('f-mkt-rentalPotential').value,
+      futureGrowth: document.getElementById('f-mkt-futureGrowth').value
+    });
+
+    // Step 13: Sales
+    data.salesData = JSON.stringify({
+      salesManager: document.getElementById('f-sales-manager').value,
+      telecaller: document.getElementById('f-sales-telecaller').value,
+      projectManager: document.getElementById('f-sales-projectManager').value
+    });
+
+    // Step 14: FAQs
+    const faqItems = [];
+    document.querySelectorAll('#faq-items > div').forEach(el => {
+      faqItems.push({
+        question: el.querySelector('.faq-question')?.value || '',
+        answer: el.querySelector('.faq-answer')?.value || ''
+      });
+    });
+    data.faqs = JSON.stringify(faqItems);
+
+    data.wizardStep = currentStep;
+    return data;
+  }
+
+  // --- Save Draft ---
+  async function saveDraft() {
+    const btn = document.getElementById('saveDraftBtn');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+    try {
+      const data = collectData();
+      const res = await fetch('/api/projects/draft', {
+        method: projectId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.success) {
+        projectId = result.project.id;
+        btn.textContent = '✓ Saved';
+        setTimeout(() => { btn.textContent = 'Save Draft'; }, 2000);
+      } else {
+        alert('Error: ' + (result.error || 'Failed to save'));
+        btn.textContent = 'Save Draft';
+      }
+    } catch (e) {
+      alert('Network error');
+      btn.textContent = 'Save Draft';
+    }
+    btn.disabled = false;
+  }
+
+  // --- Submit for Approval ---
+  async function submitForApproval() {
+    if (!projectId) {
+      await saveDraft();
+      if (!projectId) return alert('Please save the project first.');
+    }
+    await saveDraft();
+
+    try {
+      const res = await fetch('/api/projects/' + projectId + '/submit', { method: 'POST' });
+      const result = await res.json();
+      if (result.success) {
+        alert('Project submitted for MD approval!');
+        window.location.href = '/projects';
+      } else {
+        let msg = result.error || 'Failed to submit';
+        if (result.missing) msg += '\n\nMissing: ' + result.missing.join(', ');
+        alert(msg);
+      }
+    } catch (e) {
+      alert('Network error');
+    }
+  }
+
+  // --- Load existing project for editing ---
+  async function loadExistingProject(id) {
+    try {
+      const res = await fetch('/api/projects/' + id);
+      const result = await res.json();
+      if (!result.success) return;
+      const p = result.project;
+
+      document.getElementById('f-name').value = p.name || '';
+      document.getElementById('f-projectCode').value = p.projectCode || '';
+      document.getElementById('f-projectType').value = p.projectType || '';
+      document.getElementById('f-projectStatus').value = p.projectStatus || '';
+      document.getElementById('f-developerName').value = p.developerName || '';
+      document.getElementById('f-marketingCompany').value = p.marketingCompany || '';
+      document.getElementById('f-description').value = p.description || '';
+      if (p.launchDate) document.getElementById('f-launchDate').value = p.launchDate.split('T')[0];
+      if (p.completionDate) document.getElementById('f-completionDate').value = p.completionDate.split('T')[0];
+      if (p.possessionDate) document.getElementById('f-possessionDate').value = p.possessionDate.split('T')[0];
+
+      // Location
+      if (p.locationData) {
+        try {
+          const loc = JSON.parse(p.locationData);
+          document.getElementById('f-loc-state').value = loc.state || '';
+          document.getElementById('f-loc-district').value = loc.district || '';
+          document.getElementById('f-loc-city').value = loc.city || '';
+          document.getElementById('f-loc-village').value = loc.village || '';
+          document.getElementById('f-loc-survey').value = loc.surveyNumbers || '';
+          document.getElementById('f-loc-landmark').value = loc.landmark || '';
+          document.getElementById('f-loc-lat').value = loc.lat || '';
+          document.getElementById('f-loc-lng').value = loc.lng || '';
+          document.getElementById('f-loc-address').value = loc.address || '';
+          if (loc.distances) {
+            document.getElementById('f-loc-highway').value = loc.distances.highway || '';
+            document.getElementById('f-loc-airport').value = loc.distances.airport || '';
+            document.getElementById('f-loc-railway').value = loc.distances.railway || '';
+            document.getElementById('f-loc-bus').value = loc.distances.bus || '';
+            document.getElementById('f-loc-schools').value = loc.distances.schools || '';
+            document.getElementById('f-loc-hospitals').value = loc.distances.hospitals || '';
+          }
+        } catch(e){}
+      }
+
+      // Legal
+      if (p.legalData) { try { JSON.parse(p.legalData).forEach(l => addLegalItem(l)); } catch(e){} }
+
+      // Land
+      if (p.landData) {
+        try {
+          const ld = JSON.parse(p.landData);
+          ['totalArea','saleableArea','openSpace','roadArea','parkArea','clubhouseArea','greenBelt','blocks','plots','phases','plotDimensions','plotFacing'].forEach(k => {
+            const el = document.getElementById('f-land-' + k);
+            if (el && ld[k]) el.value = ld[k];
+          });
+        } catch(e){}
+      }
+
+      // Pricing
+      if (p.pricingData) {
+        try {
+          const pr = JSON.parse(p.pricingData);
+          document.getElementById('f-price-sqyard').value = pr.pricePerSqYard || '';
+          document.getElementById('f-price-sqft').value = pr.pricePerSqFt || '';
+          document.getElementById('f-price-registration').value = pr.registration || '';
+          document.getElementById('f-price-gst').value = pr.gst || '';
+          document.getElementById('f-price-devCharges').value = pr.devCharges || '';
+          document.getElementById('f-price-maintenance').value = pr.maintenance || '';
+          document.getElementById('f-price-clubhouse').value = pr.clubhouse || '';
+          document.getElementById('f-price-parking').value = pr.parking || '';
+          document.getElementById('f-price-plc').value = pr.plc || '';
+          document.getElementById('f-price-documentation').value = pr.documentation || '';
+        } catch(e){}
+      }
+      document.getElementById('f-customerOffers').value = p.customerOffers || '';
+      document.getElementById('f-associateOffers').value = p.associateOffers || '';
+
+      // Payment
+      if (p.paymentPlanData) {
+        try {
+          const pp = JSON.parse(p.paymentPlanData);
+          document.getElementById('f-pay-downPayment').value = pp.downPayment || '';
+          document.getElementById('f-pay-bookingAmount').value = pp.bookingAmount || '';
+          document.getElementById('f-pay-emiOptions').value = pp.emiOptions || '';
+          document.getElementById('f-pay-bankLoan').value = pp.bankLoan || 'Yes';
+          document.getElementById('f-pay-partnerBanks').value = pp.partnerBanks || '';
+          document.getElementById('f-pay-interestRate').value = pp.interestRate || '';
+          document.getElementById('f-pay-cancellationPolicy').value = pp.cancellationPolicy || '';
+          document.getElementById('f-pay-refundPolicy').value = pp.refundPolicy || '';
+        } catch(e){}
+      }
+
+      // Amenities
+      if (p.amenities) {
+        try {
+          const am = JSON.parse(p.amenities);
+          document.querySelectorAll('.amenity-cb').forEach(cb => { if (am.includes(cb.value)) cb.checked = true; });
+        } catch(e){}
+      }
+
+      // Infrastructure
+      if (p.infrastructure) { try { JSON.parse(p.infrastructure).forEach(i => addInfraItem(i)); } catch(e){} }
+
+      // Construction
+      if (p.constructionData) {
+        try {
+          const c = JSON.parse(p.constructionData);
+          ['floors','towers','totalUnits','builtUpArea','carpetArea','superBuiltUpArea','structureType','flooring','plumbing','electrical','doors','windows'].forEach(k => {
+            const el = document.getElementById('f-con-' + k);
+            if (el && c[k]) el.value = c[k];
+          });
+        } catch(e){}
+      }
+
+      // Marketing
+      if (p.marketingData) {
+        try {
+          const m = JSON.parse(p.marketingData);
+          document.getElementById('f-mkt-usp').value = m.usp || '';
+          document.getElementById('f-mkt-targetAudience').value = m.targetAudience || '';
+          document.getElementById('f-mkt-investmentPotential').value = m.investmentPotential || '';
+          document.getElementById('f-mkt-expectedROI').value = m.expectedROI || '';
+          document.getElementById('f-mkt-rentalPotential').value = m.rentalPotential || '';
+          document.getElementById('f-mkt-futureGrowth').value = m.futureGrowth || '';
+        } catch(e){}
+      }
+
+      // Sales
+      if (p.salesData) {
+        try {
+          const s = JSON.parse(p.salesData);
+          document.getElementById('f-sales-manager').value = s.salesManager || '';
+          document.getElementById('f-sales-telecaller').value = s.telecaller || '';
+          document.getElementById('f-sales-projectManager').value = s.projectManager || '';
+        } catch(e){}
+      }
+
+      // FAQs
+      if (p.faqs) { try { JSON.parse(p.faqs).forEach(f => addFaqItem(f)); } catch(e){} }
+
+      // Jump to saved wizard step
+      if (p.wizardStep && p.wizardStep > 1) showStep(p.wizardStep);
+
+    } catch(e) { console.error('Failed to load project', e); }
+  }
+
+  // --- Generate Review ---
+  function generateReview() {
+    const data = collectData();
+    let html = '';
+    const missing = [];
+
+    // Basic
+    html += `<div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px;">
+      <h4 style="margin-bottom: 8px; color: var(--brand-navy);">Basic Information</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 14px;">
+        <div><strong>Name:</strong> ${data.name || '—'}</div>
+        <div><strong>Code:</strong> ${data.projectCode || '—'}</div>
+        <div><strong>Type:</strong> ${data.projectType || '—'}</div>
+        <div><strong>Status:</strong> ${data.projectStatus || '—'}</div>
+      </div>
+    </div>`;
+    if (!data.name) missing.push('Project Name');
+    if (!data.projectType) missing.push('Project Type');
+
+    // Location
+    try {
+      const loc = JSON.parse(data.locationData);
+      html += `<div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px;">
+        <h4 style="margin-bottom: 8px; color: var(--brand-navy);">Location</h4>
+        <div style="font-size: 14px;">${loc.city || '—'}, ${loc.district || '—'}, ${loc.state || '—'}</div>
+        <div style="font-size: 13px; color: var(--text-muted);">${loc.address || '—'}</div>
+      </div>`;
+      if (!loc.state && !loc.city) missing.push('Location');
+    } catch(e){}
+
+    // Amenities
+    try {
+      const am = JSON.parse(data.amenities);
+      html += `<div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px;">
+        <h4 style="margin-bottom: 8px; color: var(--brand-navy);">Amenities (${am.length})</h4>
+        <div style="font-size: 14px;">${am.length > 0 ? am.join(', ') : 'None selected'}</div>
+      </div>`;
+    } catch(e){}
+
+    // FAQs
+    try {
+      const faqs = JSON.parse(data.faqs);
+      html += `<div class="card-soft" style="padding: var(--space-4); margin-bottom: var(--space-3); border-radius: 10px;">
+        <h4 style="margin-bottom: 8px; color: var(--brand-navy);">FAQs (${faqs.length})</h4>
+      </div>`;
+    } catch(e){}
+
+    document.getElementById('review-content').innerHTML = html;
+
+    // Warnings
+    if (missing.length > 0) {
+      document.getElementById('review-warnings').innerHTML = `
+        <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; padding: var(--space-4);">
+          <h4 style="color: #DC2626; margin-bottom: 8px;">⚠ Missing Required Fields</h4>
+          <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #991B1B;">${missing.map(m => `<li>${m}</li>`).join('')}</ul>
+        </div>`;
+    } else {
+      document.getElementById('review-warnings').innerHTML = `
+        <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 10px; padding: var(--space-4);">
+          <h4 style="color: #059669;">✓ All required fields are complete</h4>
+          <p style="font-size: 14px; color: #065F46; margin-top: 4px;">This project is ready to submit for MD approval.</p>
+        </div>`;
+    }
+  }
+
+  // Preload default FAQ questions for new projects
+  if (!projectId) {
+    defaultFAQs.forEach(q => addFaqItem({ question: q, answer: '' }));
+  }
+</script>
+
+<%- include('../partials/footer') %>

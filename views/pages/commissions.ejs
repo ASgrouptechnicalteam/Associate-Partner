@@ -1,0 +1,266 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Commission Ledger</h1>
+      <p class="text-muted">Track and manage associate commissions.</p>
+    </div>
+    <% if (user.role === 'AM' || user.role === 'MD') { %>
+      <button class="btn btn-primary" onclick="document.getElementById('new-commission-form').style.display='block'">+ Record Commission</button>
+    <% } %>
+  </div>
+
+  <!-- Stats row -->
+  <div class="responsive-grid-4">
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Total Commission</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center;"><i data-lucide="coins"></i></div>
+      </div>
+      <div>
+        <div id="stat-total" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Received (Paid)</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center;"><i data-lucide="check-circle"></i></div>
+      </div>
+      <div>
+        <div id="stat-received" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Due</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(59, 130, 246, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center;"><i data-lucide="arrow-down-circle"></i></div>
+      </div>
+      <div>
+        <div id="stat-due" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h4 class="text-muted" style="margin: 0; font-weight: 500;">Pending</h4>
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--warning); display: flex; align-items: center; justify-content: center;"><i data-lucide="clock"></i></div>
+      </div>
+      <div>
+        <div id="stat-pending" style="font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1;">₹0</div>
+      </div>
+    </div>
+  </div>
+
+  <% if (user.role === 'AM' || user.role === 'MD') { %>
+  <!-- New Commission Form -->
+  <div id="new-commission-form" class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: none; background: var(--surface-muted);">
+    <h3 style="margin-bottom: var(--space-4);">Record Commission Entry</h3>
+    <form id="commissionForm">
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group">
+          <label class="input-label">Associate User ID (e.g. AP-0001)</label>
+          <input type="text" id="associateUserId" class="input-control" required style="background: white;" />
+          <input type="hidden" name="associateId" id="associateInternalId" />
+          <button type="button" class="btn btn-secondary" onclick="lookupAssociate()" style="margin-top: 8px; background: white;">Verify Associate</button>
+          <div id="associateNameDisplay" class="text-success" style="font-size: 12px; margin-top: 4px; font-weight: 600;"></div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Booking ID (Optional)</label>
+          <input type="text" name="bookingId" class="input-control" style="background: white;" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Project ID (Optional)</label>
+          <input type="text" name="projectId" class="input-control" style="background: white;" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Type</label>
+          <select name="type" class="input-control" required style="background: white;">
+            <option value="FIXED">Fixed Amount</option>
+            <option value="PERCENTAGE">Percentage</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Amount (₹)</label>
+          <input type="number" name="amount" class="input-control" required min="0" style="background: white;" />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Percentage Value (If applicable)</label>
+          <input type="text" name="percentageValue" class="input-control" placeholder="e.g. 2%" style="background: white;" />
+        </div>
+        <div class="input-group" style="grid-column: 1 / -1;">
+          <label class="input-label">Reference / Remarks</label>
+          <input type="text" name="referenceRemarks" class="input-control" style="background: white;" />
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4);">
+        <button type="button" class="btn btn-secondary" style="background: white;" onclick="document.getElementById('new-commission-form').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Save Entry</button>
+      </div>
+    </form>
+  </div>
+  <% } %>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-wrapper">
+      <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead style="background: var(--surface-muted);">
+          <tr style="text-align: left;">
+            <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Date</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Associate</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Project / Ref</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Type</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Amount</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Status</th>
+            <% if (user.role === 'AM' || user.role === 'MD') { %>
+              <th style="padding: 16px var(--space-6); text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Action</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody id="ledger-tbody">
+          <tr><td colspan="7" style="padding: 40px; text-align: center;" class="text-muted"><div class="skeleton" style="height: 40px; width: 100%; border-radius: 8px;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/commissions/stats');
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('stat-total').innerText = '₹' + data.stats.total.toLocaleString();
+        document.getElementById('stat-received').innerText = '₹' + data.stats.received.toLocaleString();
+        document.getElementById('stat-due').innerText = '₹' + data.stats.due.toLocaleString();
+        document.getElementById('stat-pending').innerText = '₹' + data.stats.pending.toLocaleString();
+      }
+    } catch(e) {}
+  }
+
+  async function loadLedger() {
+    try {
+      const res = await fetch('/api/commissions');
+      const data = await res.json();
+      if (data.success) renderLedger(data.commissions);
+    } catch(e) {}
+  }
+
+  function renderLedger(ledgers) {
+    const tbody = document.getElementById('ledger-tbody');
+    if (!ledgers || ledgers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding: 60px; text-align: center;" class="text-muted"><i data-lucide="coins" style="width: 48px; height: 48px; color: var(--border); margin-bottom: 16px;"></i><br>No commission records found.</td></tr>';
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '';
+    ledgers.forEach(L => {
+      let badge = '';
+      if (L.paymentStatus === 'PAID') badge = '<span style="background: var(--success-bg); color: var(--success); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 12px;"></i> PAID</span>';
+      else if (L.paymentStatus === 'DUE') badge = '<span style="background: rgba(59, 130, 246, 0.1); color: var(--info); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-down-circle" style="width: 12px;"></i> DUE</span>';
+      else badge = '<span style="background: var(--warning-bg); color: var(--warning); padding: 4px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="clock" style="width: 12px;"></i> PENDING</span>';
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td style="padding: 16px var(--space-6);">
+            <div style="font-weight: 500; color: var(--text-primary); font-size: 13px;">${new Date(L.createdAt).toLocaleDateString()}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">${L.associate.name.substring(0,2).toUpperCase()}</div>
+              <div>
+                <div style="font-weight: 500; font-size: 13px; color: var(--text-primary);">${L.associate.name}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${L.associate.userId}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 600; color: var(--text-primary);">${L.project ? L.project.name : 'N/A'}</div>
+            <div class="text-muted" style="font-size: 12px;">${L.referenceRemarks || 'No reference'}</div>
+          </td>
+          <td style="padding: 16px;">
+            <div style="font-weight: 500; color: var(--text-primary); font-size: 13px;">${L.type}</div>
+            <div class="text-muted" style="font-size: 12px;">${L.percentageValue || 'Fixed'}</div>
+          </td>
+          <td style="padding: 16px; font-weight: 700; color: var(--text-primary);">₹${L.amount.toLocaleString()}</td>
+          <td style="padding: 16px;">${badge}</td>
+          <% if (user.role === 'AM' || user.role === 'MD') { %>
+            <td style="padding: 16px var(--space-6); text-align: right;">
+              <select onchange="updateStatus('${L.id}', this.value)" class="input-control" style="height: 32px; padding: 0 8px; font-size: 12px; width: 100px;">
+                <option value="PENDING" ${L.paymentStatus==='PENDING'?'selected':''}>Pending</option>
+                <option value="DUE" ${L.paymentStatus==='DUE'?'selected':''}>Due</option>
+                <option value="PAID" ${L.paymentStatus==='PAID'?'selected':''}>Paid</option>
+              </select>
+            </td>
+          <% } %>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+    lucide.createIcons();
+  }
+
+
+  async function lookupAssociate() {
+    const userId = document.getElementById('associateUserId').value;
+    try {
+      const res = await fetch(`/api/admin/associates?userId=${userId}`);
+      const data = await res.json();
+      if (data.success && data.associates.length > 0) {
+        document.getElementById('associateInternalId').value = data.associates[0].id;
+        document.getElementById('associateNameDisplay').innerText = `✓ Verified: ${data.associates[0].name}`;
+        document.getElementById('submitBtn').disabled = false;
+      } else {
+        alert('Associate not found');
+        document.getElementById('submitBtn').disabled = true;
+      }
+    } catch(e) {}
+  }
+
+  document.getElementById('commissionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+
+    const formData = new FormData(e.target);
+    const body = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch('/api/commissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('new-commission-form').style.display = 'none';
+        e.target.reset();
+        document.getElementById('associateNameDisplay').innerText = '';
+        btn.disabled = true;
+        loadStats();
+        loadLedger();
+      } else alert(data.error);
+    } catch(err) {}
+  });
+
+  async function updateStatus(id, status) {
+    try {
+      const res = await fetch(`/api/commissions/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentStatus: status })
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadStats();
+        loadLedger();
+      }
+    } catch(e) {}
+  }
+
+  loadStats();
+  loadLedger();
+</script>
+
+<%- include('../partials/footer') %>

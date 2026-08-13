@@ -1,0 +1,64 @@
+<aside class="sidebar">
+  <div class="logo-container" style="padding: var(--space-6) var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: center;">
+    <%- include('brand-logo', { variant: 'sidebar' }) %>
+  </div>
+  
+  <nav style="flex: 1; overflow-y: auto; padding: 0 var(--space-2) var(--space-4);">
+    <div class="nav-section-title">Main</div>
+    <a href="/" class="nav-item <%= activePath === '/' ? 'active' : '' %>">
+      <i data-lucide="layout-dashboard"></i>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="/projects" class="nav-item <%= activePath === '/projects' ? 'active' : '' %>">
+      <i data-lucide="building-2"></i>
+      <span class="nav-label">Projects</span>
+    </a>
+    <a href="/bookings" class="nav-item <%= activePath === '/bookings' ? 'active' : '' %>">
+      <i data-lucide="file-text"></i>
+      <span class="nav-label">Bookings</span>
+    </a>
+    <a href="/commissions" class="nav-item <%= activePath === '/commissions' ? 'active' : '' %>">
+      <i data-lucide="coins"></i>
+      <span class="nav-label">Commissions</span>
+    </a>
+    <a href="/team" class="nav-item <%= activePath === '/team' ? 'active' : '' %>">
+      <i data-lucide="users"></i>
+      <span class="nav-label">Team</span>
+    </a>
+
+    <div class="nav-section-title">Operations</div>
+    <a href="/offers" class="nav-item <%= activePath === '/offers' ? 'active' : '' %>">
+      <i data-lucide="gift"></i>
+      <span class="nav-label">Offers</span>
+    </a>
+    <a href="/pending-requests" class="nav-item <%= activePath === '/pending-requests' ? 'active' : '' %>">
+      <i data-lucide="hourglass"></i>
+      <span class="nav-label">Pending Requests</span>
+    </a>
+    <a href="/travel" class="nav-item <%= activePath === '/travel' ? 'active' : '' %>">
+      <i data-lucide="car"></i>
+      <span class="nav-label">Travel Allowance</span>
+    </a>
+    <a href="/site-visits" class="nav-item <%= activePath === '/site-visits' ? 'active' : '' %>">
+      <i data-lucide="map-pin"></i>
+      <span class="nav-label">Site Visits</span>
+    </a>
+    <a href="/notifications" class="nav-item <%= activePath === '/notifications' ? 'active' : '' %>">
+      <i data-lucide="bell"></i>
+      <span class="nav-label">Notifications</span>
+    </a>
+
+    <% if (user && (user.role === 'MD' || user.role === 'AM')) { %>
+    <div class="nav-section-title">Engagement / Content</div>
+    <a href="/carousel-manager" class="nav-item <%= activePath === '/carousel-manager' ? 'active' : '' %>">
+      <i data-lucide="images"></i>
+      <span class="nav-label">Carousel</span>
+    </a>
+    <a href="/popup-manager" class="nav-item <%= activePath === '/popup-manager' ? 'active' : '' %>">
+      <i data-lucide="message-square"></i>
+      <span class="nav-label">Popup</span>
+    </a>
+    <% } %>
+  </nav>
+
+</aside>

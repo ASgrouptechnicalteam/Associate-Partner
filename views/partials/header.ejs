@@ -1,0 +1,90 @@
+<header class="header">
+  <div style="display: flex; align-items: center; gap: var(--space-3); flex: 1; min-width: 0; overflow: hidden;">
+    <%- include('brand-logo', { variant: 'mobile-header' }) %>
+    <h2 class="header-title" style="margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;"><%= title %></h2>
+  </div>
+  
+  <div style="flex: 2; display: flex; justify-content: center;" class="desktop-only">
+    <div class="header-search" style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 400px; background-color: var(--surface-muted); border-radius: var(--radius-pill); padding: 0 var(--space-4); height: 44px; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+      <i data-lucide="search" style="width: 18px; height: 18px; color: var(--text-muted);"></i>
+      <input type="text" placeholder="Search projects, bookings..." style="border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-primary);" />
+    </div>
+  </div>
+  
+  <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); flex: 1;">
+    <button class="btn btn-secondary" style="padding: 0 10px; position: relative; border: none; background: transparent;" onclick="window.location.href='/notifications'">
+      <i data-lucide="bell" style="color: var(--text-secondary);"></i>
+      <span id="notif-badge" style="display: none; position: absolute; top: 0px; right: 2px; background: var(--error); color: white; border-radius: 50%; font-size: 10px; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--surface);">0</span>
+    </button>
+    <script>
+      async function pollNotifications() {
+        try {
+          const res = await fetch('/api/notifications?unread=true');
+          const data = await res.json();
+          if (data.success && data.notifications.length > 0) {
+            const b = document.getElementById('notif-badge');
+            b.style.display = 'flex';
+            b.innerText = data.notifications.length;
+          } else {
+            document.getElementById('notif-badge').style.display = 'none';
+          }
+        } catch(e) {}
+      }
+      pollNotifications();
+      setInterval(pollNotifications, 60000);
+    </script>
+    
+    <div style="position: relative;" id="profileDropdownContainer">
+      <div style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer; padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1); border-radius: var(--radius-pill); transition: background-color 0.2s;" class="hover-surface" onclick="document.getElementById('profileMenu').classList.toggle('show')">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--primary-bg); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; font-size: 14px;">
+          <%= typeof user !== 'undefined' && user ? user.name.substring(0,2).toUpperCase() : 'U' %>
+        </div>
+        <div class="user-details desktop-only" style="display: flex; flex-direction: column;">
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.2;"><%= typeof user !== 'undefined' && user ? user.name : 'Guest' %></span>
+          <span class="caption" style="line-height: 1.2; color: var(--text-muted);"><%= typeof user !== 'undefined' && user ? user.role : 'None' %></span>
+        </div>
+        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--text-muted);" class="desktop-only"></i>
+      </div>
+      
+      <!-- Dropdown Menu -->
+      <div id="profileMenu" class="dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: var(--space-2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 220px; z-index: 100; flex-direction: column;">
+        <div style="padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-light); display: flex; flex-direction: column;">
+          <span style="font-weight: 600; font-size: 14px;"><%= typeof user !== 'undefined' && user ? user.name : 'Guest' %></span>
+          <span style="font-size: 12px; color: var(--text-muted);"><%= typeof user !== 'undefined' && user ? user.role : '' %></span>
+        </div>
+        <div style="padding: var(--space-2) 0;">
+          <a href="/profile" class="dropdown-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 14px; color: var(--text-secondary); transition: background 0.2s;">
+            <i data-lucide="user" style="width: 16px; height: 16px;"></i> My Profile
+          </a>
+          <a href="/help" class="dropdown-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 14px; color: var(--text-secondary); transition: background 0.2s;">
+            <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i> Help Center
+          </a>
+        </div>
+        <div style="padding: var(--space-2) 0; border-top: 1px solid var(--border-light);">
+          <form action="/api/auth/logout" method="POST" style="margin: 0;">
+            <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 14px; color: var(--danger); transition: background 0.2s; font-family: inherit;">
+              <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<style>
+  .hover-surface:hover { background-color: var(--surface-muted); }
+  .dropdown-menu.show { display: flex !important; animation: fadeIn 0.15s ease-out; }
+  .dropdown-item:hover { background-color: var(--surface-muted); color: var(--text-primary); }
+  .header-search:focus-within { border-color: var(--primary); background-color: var(--surface); box-shadow: 0 0 0 3px var(--primary-bg); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+<script>
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const container = document.getElementById('profileDropdownContainer');
+    const menu = document.getElementById('profileMenu');
+    if (container && menu && !container.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+</script>

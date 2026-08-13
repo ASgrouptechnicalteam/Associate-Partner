@@ -1,0 +1,120 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Projects & Inventory</h1>
+      <p class="text-muted">Browse available properties and unit details.</p>
+    </div>
+    <% if (user.role === 'AM' || user.role === 'MD') { %>
+      <a href="/projects/new" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="plus"></i> Create Project
+      </a>
+    <% } %>
+  </div>
+
+  <div id="projects-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-4);">
+    <p class="text-muted">Loading projects...</p>
+  </div>
+</div>
+
+<script>
+  async function fetchProjects() {
+    try {
+      const res = await fetch('/api/projects');
+      const data = await res.json();
+      
+      if (data.success) {
+        renderProjects(data.projects);
+      }
+    } catch (e) {
+      document.getElementById('projects-grid').innerHTML = '<p class="text-error">Failed to load projects.</p>';
+    }
+  }
+
+  function renderProjects(projects) {
+    if (!projects || projects.length === 0) {
+      document.getElementById('projects-grid').innerHTML = `
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-10); background: var(--surface); border-radius: var(--radius-xl); border: 1px dashed var(--border);">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--surface-muted); color: var(--text-muted); display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-4);">
+            <i data-lucide="building-2" style="width: 32px; height: 32px;"></i>
+          </div>
+          <h3 style="margin-bottom: 8px;">No projects found</h3>
+          <p class="text-muted">There are no projects assigned to you or available right now.</p>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    let html = '';
+    projects.forEach(p => {
+      let coverImage = '/default-project.jpg';
+      if (p.gallery) {
+        try {
+          const arr = JSON.parse(p.gallery);
+          if (arr.length > 0) coverImage = arr[0];
+        } catch(e) {}
+      }
+
+      const statusBadge = p.status === 'APPROVED' ? 
+        `<div style="position: absolute; top: 16px; right: 16px; background: rgba(16, 185, 129, 0.95); color: white; padding: 4px 12px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> ACTIVE</div>` :
+        `<div style="position: absolute; top: 16px; right: 16px; background: rgba(245, 158, 11, 0.95); color: white; padding: 4px 12px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; backdrop-filter: blur(4px);">PENDING</div>`;
+
+      const availableUnits = p.units ? p.units.filter(u => u.status === 'AVAILABLE').length : 0;
+      const bookedUnits = p.units ? p.units.filter(u => u.status === 'BOOKED').length : 0;
+      const soldUnits = p.units ? p.units.filter(u => u.status === 'SOLD').length : 0;
+
+      html += `
+        <a href="/projects/${p.id}" class="card" style="text-decoration: none; color: inherit; padding: 0; overflow: hidden; display: flex; flex-direction: column; position: relative;">
+          <div style="height: 200px; background-image: url('${coverImage}'); background-size: cover; background-position: center; background-color: var(--border-light); position: relative;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to top, rgba(15, 23, 42, 0.8), transparent);"></div>
+            ${statusBadge}
+          </div>
+          <div style="padding: var(--space-5); flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <h3 style="font-size: 18px; margin: 0; color: var(--text-primary);">${p.name}</h3>
+              <div style="background: var(--surface-muted); color: var(--text-secondary); padding: 4px 8px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;">${p.type || 'Residential'}</div>
+            </div>
+            
+            <p class="text-muted" style="margin-bottom: var(--space-4); font-size: 14px; display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> ${p.location || 'Location TBA'}
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: var(--space-4); background: var(--surface-muted); border-radius: var(--radius-md); padding: var(--space-3);">
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Available</span>
+                <span style="font-size: 16px; font-weight: 700; color: var(--success);">${availableUnits}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center; border-left: 1px solid var(--border); border-right: 1px solid var(--border);">
+                <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Booked</span>
+                <span style="font-size: 16px; font-weight: 700; color: var(--warning);">${bookedUnits}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Sold</span>
+                <span style="font-size: 16px; font-weight: 700; color: var(--info);">${soldUnits}</span>
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--border-light);">
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Assigned AM</span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="user" style="width: 14px; height: 14px;"></i> ${p.manager ? p.manager.name : 'Unassigned'}
+                </span>
+              </div>
+              <span style="color: var(--primary-dark); font-weight: 600; font-size: 14px; background: var(--primary-bg); padding: 8px 16px; border-radius: var(--radius-pill); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor='var(--primary-bg)'">View &rarr;</span>
+            </div>
+          </div>
+        </a>
+      `;
+    });
+
+    document.getElementById('projects-grid').innerHTML = html;
+    lucide.createIcons();
+  }
+
+  fetchProjects();
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,304 @@
+<%- include('../partials/head') %>
+
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 700;">Site Visits</h1>
+      <p class="text-muted">Manage property viewings for your team.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showScheduleModal()">+ Schedule Visit</button>
+  </div>
+
+  <!-- Schedule Visit Form -->
+  <div id="schedule-form" class="card" style="padding: var(--space-4); margin-bottom: var(--space-6); display: none;">
+    <h3 style="margin-bottom: var(--space-4);">Schedule Site Visit</h3>
+    <form id="visitForm">
+      <div class="responsive-grid-2" style="margin-bottom: 0;">
+        <div class="input-group">
+          <label class="input-label">Project</label>
+          <select name="projectId" id="project-select" class="input-control" required>
+            <option value="">-- Loading Projects --</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Date</label>
+          <input type="date" name="date" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Time</label>
+          <input type="time" name="time" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Customer Name</label>
+          <input type="text" name="customerName" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Customer Phone</label>
+          <input type="tel" name="customerPhone" class="input-control" required />
+        </div>
+        <div class="input-group">
+          <label class="input-label">Number of Visitors</label>
+          <input type="number" name="numVisitors" class="input-control" required min="1" value="1" />
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">Purpose</label>
+          <input type="text" name="purpose" class="input-control" required placeholder="e.g. Initial Viewing, Final Negotiation" />
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+          <label class="input-label">Notes (Optional)</label>
+          <textarea name="notes" class="input-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4);">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('schedule-form').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Schedule Visit</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Post-Visit Outcome Form Modal -->
+  <div id="post-visit-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 500px; max-width: 90%; padding: var(--space-6);">
+      <h3 style="margin-bottom: var(--space-4);">Post-Visit Sales Outcome</h3>
+      <form id="postVisitForm">
+        <input type="hidden" id="pv-visitId" />
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Sales Outcome</label>
+          <select name="outcome" class="input-control" required>
+            <option value="POSITIVE">Positive / Interested</option>
+            <option value="NEUTRAL">Neutral / Need Time</option>
+            <option value="NEGATIVE">Negative / Not Interested</option>
+            <option value="BOOKED">Booked on Spot</option>
+          </select>
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Property/Unit Viewed</label>
+          <input type="text" name="propertyViewed" class="input-control" placeholder="e.g. Unit 402, Block A" />
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Customer Interest Level</label>
+          <select name="customerInterest" class="input-control">
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-3);">
+          <label class="input-label">Follow-up Required?</label>
+          <select name="followUpRequired" id="followUpRequired" class="input-control" onchange="toggleFollowUpDate()">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+        <div class="input-group" id="followUpDateGroup" style="margin-bottom: var(--space-3); display: none;">
+          <label class="input-label">Follow-up Date</label>
+          <input type="date" name="followUpDate" class="input-control" />
+        </div>
+        <div class="input-group" style="margin-bottom: var(--space-4);">
+          <label class="input-label">Remarks</label>
+          <textarea name="remarks" class="input-control" rows="2"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3);">
+          <button type="button" class="btn btn-secondary" onclick="closePostVisitModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Complete Visit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-wrapper">
+      <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead style="background: var(--surface-muted);">
+          <tr style="text-align: left;">
+            <th style="padding: 16px var(--space-6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Date & Time</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Associate</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Customer</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Project</th>
+            <th style="padding: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Status / Outcome</th>
+            <th style="padding: 16px var(--space-6); text-align: right; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light);">Pipeline Action</th>
+          </tr>
+        </thead>
+        <tbody id="visits-tbody">
+          <tr><td colspan="6" style="padding: 40px; text-align: center;" class="text-muted"><div class="skeleton" style="height: 40px; width: 100%; border-radius: 8px;"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleFollowUpDate() {
+    const isRequired = document.getElementById('followUpRequired').value === 'true';
+    document.getElementById('followUpDateGroup').style.display = isRequired ? 'block' : 'none';
+  }
+
+  async function showScheduleModal() {
+    try {
+      const res = await fetch('/api/projects');
+      const data = await res.json();
+      if (data.success) {
+        let html = '<option value="">-- Select a Project --</option>';
+        data.projects.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
+        document.getElementById('project-select').innerHTML = html;
+        document.getElementById('schedule-form').style.display = 'block';
+      }
+    } catch(e) {}
+  }
+
+  function getStatusBadge(status) {
+    const colors = {
+      'SCHEDULED': 'var(--brand-blue)',
+      'ON_THE_WAY': 'var(--warning)',
+      'ARRIVED': 'var(--brand-navy)',
+      'CUSTOMER_MET': '#8b5cf6',
+      'COMPLETED': 'var(--success)',
+      'CANCELLED': 'var(--error)',
+      'RESCHEDULED': '#64748b'
+    };
+    return `<span style="background: ${colors[status] || '#ccc'}22; color: ${colors[status] || '#ccc'}; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">${status.replace(/_/g, ' ')}</span>`;
+  }
+
+  function getNextActions(id, currentStatus) {
+    if (currentStatus === 'COMPLETED' || currentStatus === 'CANCELLED') return `<span class="text-muted">Finalized</span>`;
+    
+    let options = '';
+    if (currentStatus === 'SCHEDULED') options = `<option value="ON_THE_WAY">On The Way</option><option value="CANCELLED">Cancel</option><option value="RESCHEDULED">Reschedule</option>`;
+    if (currentStatus === 'ON_THE_WAY') options = `<option value="ARRIVED">Arrived</option><option value="CANCELLED">Cancel</option>`;
+    if (currentStatus === 'ARRIVED') options = `<option value="CUSTOMER_MET">Customer Met</option>`;
+    if (currentStatus === 'CUSTOMER_MET') options = `<option value="COMPLETED">Mark as Completed</option>`;
+    if (currentStatus === 'RESCHEDULED') options = `<option value="SCHEDULED">Re-Schedule</option><option value="CANCELLED">Cancel</option>`;
+
+    if (!options) return '';
+
+    return `
+      <select onchange="handleStatusChange('${id}', this.value)" style="padding: 4px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-light);">
+        <option value="">Update Status...</option>
+        ${options}
+      </select>
+    `;
+  }
+
+  async function loadVisits() {
+    try {
+      const res = await fetch('/api/site-visits');
+      const data = await res.json();
+      if (data.success) {
+        const tbody = document.getElementById('visits-tbody');
+        if (data.visits.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center;" class="text-muted">No site visits found.</td></tr>';
+          return;
+        }
+
+        let html = '';
+        data.visits.forEach(v => {
+          html += `
+            <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--surface-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+              <td style="padding: 16px var(--space-6);">
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${new Date(v.date).toLocaleDateString()}</div>
+                <div class="text-muted" style="font-size: 12px; margin-top: 2px;">${v.time}</div>
+              </td>
+              <td style="padding: 16px;">
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${v.associate.name}</div>
+                <div class="text-muted" style="font-family: monospace; font-size: 12px; margin-top: 2px;">${v.associate.userId}</div>
+              </td>
+              <td style="padding: 16px;">
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${v.customerName}</div>
+                <div class="text-muted" style="font-size: 12px; margin-top: 2px;">${v.customerPhone}</div>
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--surface-muted); padding: 2px 8px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-top: 6px;">
+                  <i data-lucide="users" style="width: 12px; height: 12px;"></i> ${v.numVisitors}
+                </div>
+              </td>
+              <td style="padding: 16px;">
+                <span style="font-weight: 500; color: var(--text-primary); font-size: 14px;">${v.project.name}</span>
+              </td>
+              <td style="padding: 16px;">
+                <div>${getStatusBadge(v.status)}</div>
+                ${v.status === 'COMPLETED' && v.outcome ? `<div style="font-size:12px; margin-top:6px; font-weight: 600; color: var(--primary);"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> ${v.outcome}</div>` : ''}
+              </td>
+              <td style="padding: 16px var(--space-6); text-align: right;">
+                ${getNextActions(v.id, v.status)}
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+        lucide.createIcons();
+      }
+    } catch(e) {}
+  }
+
+  async function handleStatusChange(id, newStatus) {
+    if (!newStatus) return;
+    
+    if (newStatus === 'COMPLETED') {
+      document.getElementById('pv-visitId').value = id;
+      document.getElementById('post-visit-modal').style.display = 'flex';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/site-visits/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) loadVisits();
+      else alert(data.error);
+    } catch(e) {}
+  }
+
+  function closePostVisitModal() {
+    document.getElementById('post-visit-modal').style.display = 'none';
+    document.getElementById('postVisitForm').reset();
+    document.getElementById('followUpDateGroup').style.display = 'none';
+    loadVisits(); // refresh to reset select
+  }
+
+  document.getElementById('visitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+
+    try {
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
+      const res = await fetch('/api/site-visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('schedule-form').style.display = 'none';
+        e.target.reset();
+        loadVisits();
+      } else alert(data.error);
+    } catch(err) {}
+    btn.disabled = false;
+  });
+
+  document.getElementById('postVisitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('pv-visitId').value;
+    const formData = new FormData(e.target);
+    const body = Object.fromEntries(formData.entries());
+    
+    try {
+      const res = await fetch(`/api/site-visits/${id}/post-visit`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        closePostVisitModal();
+      } else alert(data.error);
+    } catch(err) {}
+  });
+
+  loadVisits();
+</script>
+
+<%- include('../partials/footer') %>
